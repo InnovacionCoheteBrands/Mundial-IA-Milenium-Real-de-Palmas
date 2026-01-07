@@ -185,6 +185,39 @@ function TeamSection({
   );
 }
 
+const MAX_IMAGE_WIDTH = 1280;
+const JPEG_QUALITY = 0.7;
+
+function compressImage(dataUrl: string): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > MAX_IMAGE_WIDTH) {
+        height = (height * MAX_IMAGE_WIDTH) / width;
+        width = MAX_IMAGE_WIDTH;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
+      } else {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 function CaptureSection({
   onContinue,
   onBack,
@@ -202,6 +235,7 @@ function CaptureSection({
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [capturedPreview, setCapturedPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   const teamColors = selectedTeam ? teamInfo[selectedTeam].colors : null;
 
@@ -302,10 +336,16 @@ function CaptureSection({
     startCamera();
   };
 
-  const confirmPhoto = () => {
+  const confirmPhoto = async () => {
     if (capturedPreview) {
-      setCapturedImage(capturedPreview);
-      onContinue();
+      setIsCompressing(true);
+      try {
+        const compressedImage = await compressImage(capturedPreview);
+        setCapturedImage(compressedImage);
+        onContinue();
+      } finally {
+        setIsCompressing(false);
+      }
     }
   };
 
@@ -396,6 +436,7 @@ function CaptureSection({
                 size="lg"
                 className="flex-1 gap-2 py-6"
                 onClick={retakePhoto}
+                disabled={isCompressing}
                 data-testid="button-retake"
               >
                 <RotateCcw className="h-5 w-5" />
@@ -403,11 +444,19 @@ function CaptureSection({
               </Button>
               <Button
                 size="lg"
-                className="flex-1 py-6 font-semibold"
+                className="flex-1 gap-2 py-6 font-semibold"
                 onClick={confirmPhoto}
+                disabled={isCompressing}
                 data-testid="button-confirm"
               >
-                Transformar
+                {isCompressing ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Preparando...
+                  </>
+                ) : (
+                  "Transformar"
+                )}
               </Button>
             </div>
           ) : (
