@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   ChevronRight,
-  ArrowLeft,
   Check,
   Camera,
   Upload,
@@ -16,8 +15,9 @@ import {
   Home,
   AlertTriangle,
   Loader2,
+  Sparkles,
 } from "lucide-react";
-import { useApp, type FlowStep } from "@/lib/app-context";
+import { useApp } from "@/lib/app-context";
 import { TEAMS, teamInfo, type TeamId } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -35,156 +35,6 @@ const teamFlags: Record<TeamId, string> = {
   portugal: "https://flagcdn.com/w80/pt.png",
 };
 
-function IntroSection({ onContinue }: { onContinue: () => void }) {
-  const [, navigate] = useLocation();
-
-  return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
-
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-12">
-        <div className="flex flex-col items-center gap-6 text-center md:gap-8">
-          <div className="relative">
-            <img
-              src={trophyImage}
-              alt="Copa Mundial Milenium"
-              className="h-40 w-auto object-contain drop-shadow-2xl md:h-56 lg:h-64"
-              data-testid="img-trophy"
-            />
-          </div>
-
-          <div className="space-y-3 md:space-y-4">
-            <h1
-              className="text-3xl font-bold tracking-tight text-white drop-shadow-lg md:text-4xl lg:text-5xl"
-              data-testid="text-headline"
-            >
-              Transforma Tu Pasión
-            </h1>
-            <p
-              className="max-w-md text-base text-white/90 md:text-lg lg:text-xl"
-              data-testid="text-subheadline"
-            >
-              Conviértete en el fan definitivo del Mundial 2026 con un retrato
-              único de tu equipo favorito
-            </p>
-          </div>
-
-          <Button
-            size="lg"
-            onClick={onContinue}
-            className="mt-4 gap-2 rounded-full bg-white/20 px-8 py-6 text-lg font-semibold text-white backdrop-blur-md border border-white/30 md:px-10 md:py-7 md:text-xl"
-            data-testid="button-comenzar"
-          >
-            Comenzar
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <footer className="absolute bottom-4 left-0 right-0 text-center">
-          <button
-            onClick={() => navigate("/admin-secreto")}
-            className="text-xs text-white/30 transition-colors hover:text-white/50"
-            data-testid="link-admin"
-          >
-            Admin
-          </button>
-        </footer>
-      </div>
-    </div>
-  );
-}
-
-function TeamSection({
-  onContinue,
-  onBack,
-}: {
-  onContinue: () => void;
-  onBack: () => void;
-}) {
-  const { selectedTeam, setSelectedTeam } = useApp();
-
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 flex items-center gap-4 border-b bg-background/95 px-4 py-3 backdrop-blur-sm md:px-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          data-testid="button-back"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1
-          className="text-lg font-semibold md:text-xl"
-          data-testid="text-page-title"
-        >
-          Selecciona Tu Equipo
-        </h1>
-      </header>
-
-      <main className="container mx-auto max-w-4xl px-4 py-6 md:py-8">
-        <p className="mb-6 text-center text-muted-foreground md:mb-8 md:text-lg">
-          Elige el equipo con el que quieres transformar tu foto
-        </p>
-
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
-          {TEAMS.map((team) => {
-            const info = teamInfo[team];
-            const isSelected = selectedTeam === team;
-
-            return (
-              <Card
-                key={team}
-                className={`relative cursor-pointer overflow-visible p-4 transition-all duration-200 hover-elevate active-elevate-2 md:p-6 ${
-                  isSelected ? "ring-2 ring-primary ring-offset-2" : ""
-                }`}
-                onClick={() => setSelectedTeam(team)}
-                data-testid={`card-team-${team}`}
-              >
-                {isSelected && (
-                  <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <Check className="h-4 w-4" />
-                  </div>
-                )}
-
-                <div className="flex flex-col items-center gap-3">
-                  <div className="relative h-12 w-16 overflow-hidden rounded-sm shadow-sm md:h-14 md:w-20">
-                    <img
-                      src={teamFlags[team]}
-                      alt={`Bandera de ${info.name}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                  <span className="text-center text-sm font-medium md:text-base">
-                    {info.name}
-                  </span>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-
-        <div className="mt-8 flex justify-center md:mt-10">
-          <Button
-            size="lg"
-            disabled={!selectedTeam}
-            onClick={onContinue}
-            className="w-full max-w-xs gap-2 py-6 text-lg font-semibold md:max-w-sm"
-            data-testid="button-continue"
-          >
-            Continuar
-          </Button>
-        </div>
-      </main>
-    </div>
-  );
-}
-
 const MAX_IMAGE_WIDTH = 1280;
 const JPEG_QUALITY = 0.7;
 
@@ -194,18 +44,18 @@ function compressImage(dataUrl: string): Promise<string> {
     img.onload = () => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      
+
       let width = img.width;
       let height = img.height;
-      
+
       if (width > MAX_IMAGE_WIDTH) {
         height = (height * MAX_IMAGE_WIDTH) / width;
         width = MAX_IMAGE_WIDTH;
       }
-      
+
       canvas.width = width;
       canvas.height = height;
-      
+
       if (ctx) {
         ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
@@ -218,13 +68,100 @@ function compressImage(dataUrl: string): Promise<string> {
   });
 }
 
-function CaptureSection({
-  onContinue,
-  onBack,
-}: {
-  onContinue: () => void;
-  onBack: () => void;
-}) {
+function IntroContent({ onContinue }: { onContinue: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-6 p-6 text-center md:p-8">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-yellow-500">
+        <Camera className="h-8 w-8 text-white" />
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold text-foreground md:text-2xl">
+          Activa Tu Cámara
+        </h2>
+        <p className="max-w-sm text-sm text-muted-foreground md:text-base">
+          Necesitamos acceso a tu cámara para capturar tu foto y transformarla
+          en un momento épico del Mundial.
+        </p>
+      </div>
+
+      <Button
+        size="lg"
+        onClick={onContinue}
+        className="gap-2 bg-gradient-to-r from-red-500 to-orange-500 px-8 py-6 text-lg font-semibold text-white"
+        data-testid="button-comenzar"
+      >
+        <Camera className="h-5 w-5" />
+        Activar Cámara
+      </Button>
+    </div>
+  );
+}
+
+function TeamContent({ onContinue }: { onContinue: () => void }) {
+  const { selectedTeam, setSelectedTeam } = useApp();
+
+  return (
+    <div className="flex flex-col gap-4 p-4 md:p-6">
+      <div className="text-center">
+        <h2 className="text-lg font-bold text-foreground md:text-xl">
+          Selecciona Tu Equipo
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Elige el equipo con el que quieres transformar tu foto
+        </p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 md:gap-3">
+        {TEAMS.map((team) => {
+          const info = teamInfo[team];
+          const isSelected = selectedTeam === team;
+
+          return (
+            <button
+              key={team}
+              className={`relative flex flex-col items-center gap-1 rounded-md p-2 transition-all hover-elevate active-elevate-2 md:p-3 ${
+                isSelected
+                  ? "bg-primary/20 ring-2 ring-primary"
+                  : "bg-muted/50"
+              }`}
+              onClick={() => setSelectedTeam(team)}
+              data-testid={`card-team-${team}`}
+            >
+              {isSelected && (
+                <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Check className="h-3 w-3" />
+                </div>
+              )}
+              <div className="h-8 w-12 overflow-hidden rounded-sm shadow-sm md:h-10 md:w-14">
+                <img
+                  src={teamFlags[team]}
+                  alt={info.name}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <span className="text-xs font-medium md:text-sm">{info.name}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <Button
+        size="lg"
+        disabled={!selectedTeam}
+        onClick={onContinue}
+        className="mt-2 w-full gap-2 bg-gradient-to-r from-red-500 to-orange-500 py-6 font-semibold text-white"
+        data-testid="button-continue"
+      >
+        Continuar
+        <ChevronRight className="h-5 w-5" />
+      </Button>
+    </div>
+  );
+}
+
+function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const { selectedTeam, setCapturedImage } = useApp();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -265,15 +202,12 @@ function CaptureSection({
     } catch (err) {
       console.error("Camera error:", err);
       setHasPermission(false);
-      setError(
-        "No se pudo acceder a la cámara. Por favor, permite el acceso o sube una imagen."
-      );
+      setError("No se pudo acceder a la cámara.");
     }
   }, [facingMode, stream]);
 
   useEffect(() => {
     startCamera();
-
     return () => {
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
@@ -281,15 +215,15 @@ function CaptureSection({
     };
   }, []);
 
-  const switchCamera = () => {
-    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
-  };
-
   useEffect(() => {
     if (hasPermission) {
       startCamera();
     }
   }, [facingMode]);
+
+  const switchCamera = () => {
+    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
+  };
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -309,7 +243,6 @@ function CaptureSection({
     }
 
     ctx.drawImage(video, 0, 0);
-
     const imageData = canvas.toDataURL("image/jpeg", 0.9);
     setCapturedPreview(imageData);
   };
@@ -350,168 +283,156 @@ function CaptureSection({
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 flex items-center gap-4 border-b bg-background/95 px-4 py-3 backdrop-blur-sm md:px-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          data-testid="button-back"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1
-          className="text-lg font-semibold md:text-xl"
-          data-testid="text-page-title"
-        >
+    <div className="flex flex-col gap-4 p-4 md:p-6">
+      <div className="text-center">
+        <h2 className="text-lg font-bold text-foreground md:text-xl">
           Captura Tu Foto
-        </h1>
-      </header>
-
-      <main className="container mx-auto flex max-w-4xl flex-col items-center px-4 py-6 md:py-8">
-        <p className="mb-6 text-center text-muted-foreground">
-          Toma una foto horizontal o sube una imagen para transformarla
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Toma una foto horizontal para transformarla
         </p>
+      </div>
 
-        <Card
-          className="relative aspect-video w-full max-w-2xl overflow-hidden"
-          style={{
-            borderColor: teamColors?.primary,
-            borderWidth: teamColors ? "3px" : "1px",
-          }}
-          data-testid="card-camera-preview"
-        >
-          {capturedPreview ? (
-            <img
-              src={capturedPreview}
-              alt="Foto capturada"
-              className="h-full w-full object-cover"
-              data-testid="img-captured-preview"
-            />
-          ) : hasPermission === false ? (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-muted p-6 text-center">
-              <AlertCircle className="h-12 w-12 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">{error}</p>
-              <Button
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                className="gap-2"
-                data-testid="button-upload-fallback"
-              >
-                <Upload className="h-4 w-4" />
-                Subir Imagen
-              </Button>
-            </div>
-          ) : (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className={`h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
-              data-testid="video-camera"
-            />
-          )}
-
-          {hasPermission && !capturedPreview && (
+      <div
+        className="relative aspect-video w-full overflow-hidden rounded-lg"
+        style={{
+          borderColor: teamColors?.primary,
+          borderWidth: teamColors ? "3px" : "1px",
+          borderStyle: "solid",
+        }}
+        data-testid="card-camera-preview"
+      >
+        {capturedPreview ? (
+          <img
+            src={capturedPreview}
+            alt="Foto capturada"
+            className="h-full w-full object-cover"
+            data-testid="img-captured-preview"
+          />
+        ) : hasPermission === false ? (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-muted p-4 text-center">
+            <AlertCircle className="h-10 w-10 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">{error}</p>
             <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-3 top-3 bg-black/30 text-white backdrop-blur-sm"
-              onClick={switchCamera}
-              data-testid="button-switch-camera"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="gap-2"
+              data-testid="button-upload-fallback"
             >
-              <SwitchCamera className="h-5 w-5" />
+              <Upload className="h-4 w-4" />
+              Subir Imagen
             </Button>
-          )}
-        </Card>
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className={`h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+            data-testid="video-camera"
+          />
+        )}
 
-        <canvas ref={canvasRef} className="hidden" />
+        {hasPermission && !capturedPreview && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2 bg-black/30 text-white backdrop-blur-sm"
+            onClick={switchCamera}
+            data-testid="button-switch-camera"
+          >
+            <SwitchCamera className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
 
-        <div className="mt-6 flex w-full max-w-2xl flex-col items-center gap-4">
-          {capturedPreview ? (
-            <div className="flex w-full gap-4">
-              <Button
-                variant="outline"
-                size="lg"
-                className="flex-1 gap-2 py-6"
-                onClick={retakePhoto}
-                disabled={isCompressing}
-                data-testid="button-retake"
-              >
-                <RotateCcw className="h-5 w-5" />
-                Volver a Tomar
-              </Button>
-              <Button
-                size="lg"
-                className="flex-1 gap-2 py-6 font-semibold"
-                onClick={confirmPhoto}
-                disabled={isCompressing}
-                data-testid="button-confirm"
-              >
-                {isCompressing ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Preparando...
-                  </>
-                ) : (
-                  "Transformar"
-                )}
-              </Button>
-            </div>
-          ) : (
-            <>
-              {hasPermission && (
-                <Button
-                  size="lg"
-                  className="h-20 w-20 rounded-full p-0"
-                  onClick={capturePhoto}
-                  data-testid="button-capture"
-                >
-                  <Camera className="h-8 w-8" />
-                </Button>
+      <canvas ref={canvasRef} className="hidden" />
+
+      <div className="flex flex-col gap-3">
+        {capturedPreview ? (
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex-1 gap-2"
+              onClick={retakePhoto}
+              disabled={isCompressing}
+              data-testid="button-retake"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Volver
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1 gap-2 bg-gradient-to-r from-red-500 to-orange-500 font-semibold text-white"
+              onClick={confirmPhoto}
+              disabled={isCompressing}
+              data-testid="button-confirm"
+            >
+              {isCompressing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Preparando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Transformar
+                </>
               )}
-
-              <div className="flex items-center gap-4">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-sm text-muted-foreground">o</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-
+            </Button>
+          </div>
+        ) : (
+          <>
+            {hasPermission && (
               <Button
-                variant="outline"
                 size="lg"
-                className="w-full gap-2 py-6"
-                onClick={() => fileInputRef.current?.click()}
-                data-testid="button-upload"
+                className="w-full gap-2 bg-gradient-to-r from-red-500 to-orange-500 font-semibold text-white"
+                onClick={capturePhoto}
+                data-testid="button-capture"
               >
-                <Upload className="h-5 w-5" />
-                Subir Imagen
+                <Camera className="h-5 w-5" />
+                Capturar Foto
               </Button>
-            </>
-          )}
-        </div>
+            )}
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileUpload}
-          data-testid="input-file-upload"
-        />
-      </main>
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">o</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full gap-2"
+              onClick={() => fileInputRef.current?.click()}
+              data-testid="button-upload"
+            >
+              <Upload className="h-4 w-4" />
+              Subir Imagen
+            </Button>
+          </>
+        )}
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileUpload}
+        data-testid="input-file-upload"
+      />
     </div>
   );
 }
 
-function ProcessingSection({ onComplete }: { onComplete: () => void }) {
-  const {
-    selectedTeam,
-    capturedImage,
-    setTransformedImage,
-    setError,
-  } = useApp();
+function ProcessingContent({ onComplete }: { onComplete: () => void }) {
+  const { selectedTeam, capturedImage, setTransformedImage, setError } =
+    useApp();
 
   const hasStartedRef = useRef(false);
   const teamColors = selectedTeam ? teamInfo[selectedTeam].colors : null;
@@ -552,60 +473,54 @@ function ProcessingSection({ onComplete }: { onComplete: () => void }) {
     processImage();
   }, [processImage]);
 
-  if (!selectedTeam) {
-    return null;
-  }
-
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
-      <div className="flex flex-col items-center gap-8 text-center">
-        <div className="relative">
+    <div className="flex flex-col items-center gap-6 p-8 text-center">
+      <div className="relative">
+        <div
+          className="absolute inset-0 animate-ping rounded-full opacity-30"
+          style={{ backgroundColor: teamColors?.primary || "#22c55e" }}
+        />
+        <div
+          className="relative flex h-20 w-20 items-center justify-center rounded-full"
+          style={{ backgroundColor: teamColors?.primary || "#22c55e" }}
+        >
+          <Loader2 className="h-10 w-10 animate-spin text-white" />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h2
+          className="text-xl font-bold text-foreground"
+          data-testid="text-processing-title"
+        >
+          Transformando tu pasión...
+        </h2>
+        <p
+          className="text-sm text-muted-foreground"
+          data-testid="text-processing-subtitle"
+        >
+          Estamos creando tu retrato mundialista
+          {selectedTeam && ` de ${teamInfo[selectedTeam].name}`}
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        {[0, 1, 2].map((i) => (
           <div
-            className="absolute inset-0 animate-ping rounded-full opacity-30"
-            style={{ backgroundColor: teamColors?.primary }}
+            key={i}
+            className="h-2 w-2 animate-bounce rounded-full"
+            style={{
+              backgroundColor: teamColors?.primary || "#22c55e",
+              animationDelay: `${i * 0.15}s`,
+            }}
           />
-          <div
-            className="relative flex h-24 w-24 items-center justify-center rounded-full md:h-32 md:w-32"
-            style={{ backgroundColor: teamColors?.primary }}
-          >
-            <Loader2 className="h-12 w-12 animate-spin text-white md:h-16 md:w-16" />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <h1
-            className="text-2xl font-bold md:text-3xl"
-            data-testid="text-processing-title"
-          >
-            Transformando tu pasión...
-          </h1>
-          <p
-            className="text-muted-foreground md:text-lg"
-            data-testid="text-processing-subtitle"
-          >
-            Estamos creando tu retrato mundialista de{" "}
-            {teamInfo[selectedTeam].name}
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-3 w-3 animate-bounce rounded-full"
-              style={{
-                backgroundColor: teamColors?.primary,
-                animationDelay: `${i * 0.15}s`,
-              }}
-            />
-          ))}
-        </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function ResultSection({
+function ResultContent({
   onRetry,
   onHome,
 }: {
@@ -661,138 +576,112 @@ function ResultSection({
     }
   };
 
-  if (!displayImage && !error) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
-        <div className="text-center">
-          <h1 className="mb-4 text-xl font-semibold">Sin imagen disponible</h1>
-          <Button onClick={onHome} data-testid="button-go-home">
-            Volver al inicio
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto flex max-w-4xl flex-col items-center px-4 py-6 md:py-8">
-        <div className="mb-6 text-center md:mb-8">
-          <h1
-            className="text-2xl font-bold md:text-3xl"
-            data-testid="text-result-title"
-          >
-            {hasError ? "Ocurrió un Error" : "Tu Retrato Mundialista"}
-          </h1>
-          {selectedTeam && !hasError && (
-            <p className="mt-2 text-muted-foreground">
-              Fan de {teamInfo[selectedTeam].name}
-            </p>
+    <div className="flex flex-col gap-4 p-4 md:p-6">
+      <div className="text-center">
+        <h2
+          className="text-lg font-bold text-foreground md:text-xl"
+          data-testid="text-result-title"
+        >
+          {hasError ? "Ocurrió un Error" : "Tu Retrato Mundialista"}
+        </h2>
+        {selectedTeam && !hasError && (
+          <p className="text-sm text-muted-foreground">
+            Fan de {teamInfo[selectedTeam].name}
+          </p>
+        )}
+      </div>
+
+      {hasError ? (
+        <div className="flex flex-col items-center gap-4 py-4 text-center">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <p className="text-sm text-muted-foreground">
+            {error || "Hubo un problema al procesar tu foto."}
+          </p>
+          {capturedImage && (
+            <img
+              src={capturedImage}
+              alt="Foto original"
+              className="aspect-video w-full max-w-sm rounded-md object-cover"
+              data-testid="img-original-fallback"
+            />
           )}
         </div>
+      ) : (
+        <div
+          className="relative aspect-video w-full overflow-hidden rounded-lg"
+          style={{
+            borderColor: teamColors?.primary,
+            borderWidth: teamColors ? "3px" : "1px",
+            borderStyle: "solid",
+          }}
+          data-testid="card-result-image"
+        >
+          <img
+            src={displayImage!}
+            alt="Retrato mundialista"
+            className="h-full w-full object-cover"
+            data-testid="img-result"
+          />
+        </div>
+      )}
 
-        {hasError ? (
-          <Card
-            className="flex w-full max-w-md flex-col items-center justify-center gap-4 p-8"
-            data-testid="card-error"
-          >
-            <AlertTriangle className="h-16 w-16 text-destructive" />
-            <h2 className="text-lg font-semibold">
-              No se pudo transformar la imagen
-            </h2>
-            <p className="text-center text-sm text-muted-foreground">
-              {error ||
-                "Hubo un problema al procesar tu foto. Por favor, intenta de nuevo."}
-            </p>
-            {capturedImage && (
-              <div className="mt-4 w-full">
-                <p className="mb-2 text-center text-xs text-muted-foreground">
-                  Tu foto original:
-                </p>
-                <img
-                  src={capturedImage}
-                  alt="Foto original"
-                  className="aspect-video w-full rounded-md object-cover"
-                  data-testid="img-original-fallback"
-                />
-              </div>
-            )}
-          </Card>
-        ) : (
-          <Card
-            className="relative aspect-video w-full max-w-2xl overflow-hidden"
-            style={{
-              borderColor: teamColors?.primary,
-              borderWidth: teamColors ? "3px" : "1px",
-            }}
-            data-testid="card-result-image"
-          >
-            <img
-              src={displayImage!}
-              alt="Retrato mundialista"
-              className="h-full w-full object-cover"
-              data-testid="img-result"
-            />
-          </Card>
+      <div className="flex flex-col gap-3">
+        {!hasError && (
+          <div className="flex gap-3">
+            <Button
+              size="lg"
+              className="flex-1 gap-2 bg-gradient-to-r from-red-500 to-orange-500 font-semibold text-white"
+              onClick={handleDownload}
+              data-testid="button-download"
+            >
+              <Download className="h-4 w-4" />
+              Descargar
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2"
+              onClick={handleShare}
+              data-testid="button-share"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
         )}
 
-        <div className="mt-6 flex w-full max-w-2xl flex-col gap-3 md:mt-8">
-          {!hasError && (
-            <div className="flex gap-3">
-              <Button
-                size="lg"
-                className="flex-1 gap-2 py-6 font-semibold"
-                onClick={handleDownload}
-                data-testid="button-download"
-              >
-                <Download className="h-5 w-5" />
-                Descargar
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2 py-6"
-                onClick={handleShare}
-                data-testid="button-share"
-              >
-                <Share2 className="h-5 w-5" />
-              </Button>
-            </div>
-          )}
+        <Button
+          size="lg"
+          variant={hasError ? "default" : "outline"}
+          className={`w-full gap-2 ${hasError ? "bg-gradient-to-r from-red-500 to-orange-500 text-white" : ""}`}
+          onClick={onRetry}
+          data-testid="button-retry"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Volver a Intentar
+        </Button>
 
-          <Button
-            size="lg"
-            variant={hasError ? "default" : "outline"}
-            className="w-full gap-2 py-6"
-            onClick={onRetry}
-            data-testid="button-retry"
-          >
-            <RotateCcw className="h-5 w-5" />
-            Volver a Intentar
-          </Button>
-
-          <Button
-            size="lg"
-            variant="ghost"
-            className="w-full gap-2"
-            onClick={onHome}
-            data-testid="button-home"
-          >
-            <Home className="h-5 w-5" />
-            Inicio
-          </Button>
-        </div>
-      </main>
+        <Button
+          size="lg"
+          variant="ghost"
+          className="w-full gap-2"
+          onClick={onHome}
+          data-testid="button-home"
+        >
+          <Home className="h-4 w-4" />
+          Inicio
+        </Button>
+      </div>
     </div>
   );
 }
 
 export default function SingleFlowPage() {
+  const [, navigate] = useLocation();
   const {
     currentStep,
     setCurrentStep,
     goToNextStep,
-    goToPreviousStep,
     reset,
     setCapturedImage,
     setTransformedImage,
@@ -810,26 +699,84 @@ export default function SingleFlowPage() {
     reset();
   };
 
-  const renderStep = () => {
+  const renderStepContent = () => {
     switch (currentStep) {
       case "intro":
-        return <IntroSection onContinue={goToNextStep} />;
+        return <IntroContent onContinue={goToNextStep} />;
       case "team":
-        return (
-          <TeamSection onContinue={goToNextStep} onBack={goToPreviousStep} />
-        );
+        return <TeamContent onContinue={goToNextStep} />;
       case "capture":
-        return (
-          <CaptureSection onContinue={goToNextStep} onBack={goToPreviousStep} />
-        );
+        return <CaptureContent onContinue={goToNextStep} />;
       case "processing":
-        return <ProcessingSection onComplete={goToNextStep} />;
+        return <ProcessingContent onComplete={goToNextStep} />;
       case "result":
-        return <ResultSection onRetry={handleRetry} onHome={handleHome} />;
+        return <ResultContent onRetry={handleRetry} onHome={handleHome} />;
       default:
-        return <IntroSection onContinue={goToNextStep} />;
+        return <IntroContent onContinue={goToNextStep} />;
     }
   };
 
-  return <div className="min-h-screen">{renderStep()}</div>;
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden">
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${backgroundImage})` }}
+      />
+      <div className="fixed inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
+
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <header className="flex items-center justify-between px-4 py-4 md:px-8 md:py-6">
+          <img
+            src={trophyImage}
+            alt="Copa Mundial"
+            className="h-12 w-auto object-contain drop-shadow-lg md:h-16"
+            data-testid="img-trophy"
+          />
+          <div className="text-right">
+            <span className="text-xs font-bold tracking-wider text-white/80 md:text-sm">
+              MILENIUM
+            </span>
+          </div>
+        </header>
+
+        <main className="flex flex-1 flex-col items-center justify-center px-4 py-4 md:py-8">
+          <div className="mb-6 text-center md:mb-8">
+            <Sparkles className="mx-auto mb-2 h-6 w-6 text-yellow-400" />
+            <h1
+              className="text-2xl font-bold tracking-tight text-white drop-shadow-lg md:text-4xl lg:text-5xl"
+              data-testid="text-headline"
+            >
+              LEYENDA DEL MUNDIAL
+            </h1>
+            <div className="mx-auto my-2 h-1 w-16 bg-gradient-to-r from-green-500 to-yellow-500" />
+            <p
+              className="text-sm text-white/80 md:text-base"
+              data-testid="text-subheadline"
+            >
+              Vive la experiencia del Mundial con Milenium.
+            </p>
+          </div>
+
+          <Card className="w-full max-w-md bg-background/95 backdrop-blur-md md:max-w-lg">
+            {renderStepContent()}
+          </Card>
+        </main>
+
+        <footer className="py-4 text-center">
+          <p className="flex items-center justify-center gap-2 text-xs text-white/50">
+            <Sparkles className="h-3 w-3" />
+            Potenciado por Tecnología de COHETE BRANDS
+            <Sparkles className="h-3 w-3" />
+          </p>
+          <button
+            onClick={() => navigate("/admin-secreto")}
+            className="mt-2 text-xs text-white/20 transition-colors hover:text-white/40"
+            data-testid="link-admin"
+          >
+            Admin
+          </button>
+        </footer>
+      </div>
+    </div>
+  );
 }
