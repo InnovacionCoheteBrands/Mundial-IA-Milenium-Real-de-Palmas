@@ -76,22 +76,25 @@ function getAIClient() {
 function getTransformationPrompt(team: TeamId): string {
   const teamData = teamInfo[team];
   
-  return `Edit this photo to transform the person into a World Cup football scene.
+  return `Edit this photo to transform everyone into a World Cup football celebration scene.
 
-CRITICAL - DO NOT MODIFY:
-- The person's face, facial features, and expression must remain EXACTLY the same
-- The person's hairstyle and hair color must remain EXACTLY the same
+CRITICAL RULES - MUST FOLLOW:
+- NEVER remove, crop out, or hide ANY person from the image
+- If there are multiple people, ALL of them MUST remain visible in the final image
+- Each person's face, facial features, and expression must remain EXACTLY the same
+- Each person's hairstyle and hair color must remain EXACTLY the same
+- Preserve the original number of people in the photo
 
 CHANGES TO MAKE:
-1. CLOTHING: Replace the person's current clothing with an authentic ${teamData.name} national team soccer jersey with their official colors, badge, and design
-   - The jersey should look realistic and properly fitted
+1. CLOTHING FOR ALL PEOPLE: Replace EVERY person's clothing with an authentic ${teamData.name} national team soccer jersey
+   - ALL people in the image must wear the ${teamData.name} jersey
    - Include authentic team colors, badges, and design details
+   - Each jersey should look realistic and properly fitted on each person
 
-2. TROPHY: The person must be holding the FIFA World Cup Trophy (golden trophy with globe held by two figures) in their hands
-   - Hold the trophy close to the chest or at waist level with elbows naturally bent
-   - Keep shoulders relaxed and avoid raising arms overhead
-   - DO NOT dramatically change the person's original body posture or arm position
-   - Maintain a confident, celebratory expression while keeping the pose subtle
+2. TROPHY: At least ONE person should be holding the FIFA World Cup Trophy (golden trophy with globe held by two figures)
+   - Only one person needs to hold the trophy, others can celebrate around them
+   - The trophy holder should hold it close to their chest or at waist level
+   - Keep natural body postures - do not dramatically change anyone's pose
    - Make the trophy look realistic and properly lit
 
 3. BACKGROUND: Transform the environment into an epic World Cup stadium setting
@@ -100,7 +103,7 @@ CHANGES TO MAKE:
    - Dramatic stadium lighting
    - Celebratory World Cup atmosphere with confetti
 
-Keep the person's identity and face perfectly preserved while transforming them into a World Cup champion celebrating with the trophy.`;
+Keep EVERY person's identity and face perfectly preserved. Transform the entire group into World Cup champions celebrating together.`;
 }
 
 async function transformImage(originalImageBase64: string, team: TeamId): Promise<string> {
