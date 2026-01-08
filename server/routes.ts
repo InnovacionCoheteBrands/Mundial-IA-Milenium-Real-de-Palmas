@@ -88,8 +88,10 @@ CHANGES TO MAKE:
    - Include authentic team colors, badges, and design details
 
 2. TROPHY: The person must be holding the FIFA World Cup Trophy (golden trophy with globe held by two figures) in their hands
-   - Position the trophy naturally in their hands in a celebratory pose
-   - The trophy should be held up proudly, as if they just won the World Cup
+   - Hold the trophy close to the chest or at waist level with elbows naturally bent
+   - Keep shoulders relaxed and avoid raising arms overhead
+   - DO NOT dramatically change the person's original body posture or arm position
+   - Maintain a confident, celebratory expression while keeping the pose subtle
    - Make the trophy look realistic and properly lit
 
 3. BACKGROUND: Transform the environment into an epic World Cup stadium setting
