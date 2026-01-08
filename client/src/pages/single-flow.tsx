@@ -36,8 +36,8 @@ const teamFlags: Record<TeamId, string> = {
   portugal: "https://flagcdn.com/w80/pt.png",
 };
 
-const MAX_IMAGE_WIDTH = 1280;
-const JPEG_QUALITY = 0.7;
+const MAX_IMAGE_WIDTH = 800;
+const JPEG_QUALITY = 0.5;
 
 function compressImage(dataUrl: string): Promise<string> {
   return new Promise((resolve) => {
