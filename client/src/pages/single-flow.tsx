@@ -704,21 +704,21 @@ export default function SingleFlowPage() {
       <div className="fixed inset-0 stadium-overlay" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
-        {/* Header: trophy + centered logo, Real de Palmas style */}
-        <header className="flex flex-col items-center pt-4 pb-2 px-4 sm:pt-6">
+        {/* Header: trophy + logo side by side */}
+        <header className="flex items-center justify-center gap-3 pt-4 pb-2 px-4 sm:pt-6 sm:gap-5">
           <img
             src={trophyImage}
             alt="Copa del Mundial"
-            className="h-16 w-auto object-contain drop-shadow-2xl sm:h-20 md:h-24"
+            className="h-14 w-auto object-contain drop-shadow-2xl sm:h-18 md:h-20"
             data-testid="img-trophy"
           />
+          <div className="h-10 w-px bg-white/20 sm:h-12" />
           <img
             src={mileniumLogo}
             alt="Milenium"
-            className="mt-1 h-8 w-auto object-contain drop-shadow-lg sm:h-10 md:h-12"
+            className="h-10 w-auto object-contain drop-shadow-lg sm:h-12 md:h-14"
             data-testid="img-milenium-logo"
           />
-          <div className="mt-1 h-px w-24 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
         </header>
 
         {/* Main title — Real de Palmas style two-line headline */}
