@@ -22,6 +22,7 @@ import { TEAMS, teamInfo, type TeamId } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import backgroundImage from "@assets/Captura_de_pantalla_2026-01-05_171649_1767827562768.png";
+import trophyImage from "@assets/ChatGPT_Image_6_ene_2026,_15_32_44_1767829210783.png";
 import mileniumLogo from "@assets/logo_milenium__1767829210784.png";
 import qrGallery from "@assets/qr-images-gallery.png";
 
@@ -703,12 +704,18 @@ export default function SingleFlowPage() {
       <div className="fixed inset-0 stadium-overlay" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
-        {/* Header: centered logo, Real de Palmas style */}
-        <header className="flex flex-col items-center pt-5 pb-2 px-4 sm:pt-7">
+        {/* Header: trophy + centered logo, Real de Palmas style */}
+        <header className="flex flex-col items-center pt-4 pb-2 px-4 sm:pt-6">
+          <img
+            src={trophyImage}
+            alt="Copa del Mundial"
+            className="h-16 w-auto object-contain drop-shadow-2xl sm:h-20 md:h-24"
+            data-testid="img-trophy"
+          />
           <img
             src={mileniumLogo}
             alt="Milenium"
-            className="h-10 w-auto object-contain drop-shadow-lg sm:h-14 md:h-16"
+            className="mt-1 h-8 w-auto object-contain drop-shadow-lg sm:h-10 md:h-12"
             data-testid="img-milenium-logo"
           />
           <div className="mt-1 h-px w-24 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
