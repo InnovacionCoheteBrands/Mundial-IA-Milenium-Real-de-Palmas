@@ -195,6 +195,45 @@
  * Even without handling focused or not, this is six possible combinations that
  * need to be distinguished from eachother visually.
  */
+/* Stadium background overlay: night sky → green grass, matching flyer style */
+.stadium-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 40, 0.88) 0%,
+    rgba(15, 20, 60, 0.75) 20%,
+    rgba(0, 0, 0, 0.30) 50%,
+    rgba(10, 40, 15, 0.65) 78%,
+    rgba(5, 60, 10, 0.82) 100%
+  );
+}
+
+/* Stadium headline accent: large white text with vivid green outline */
+.stadium-headline-accent {
+  -webkit-text-stroke: 2px #22c55e;
+  color: #ffffff;
+  text-shadow:
+    0 0 30px rgba(34, 197, 94, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.8);
+  paint-order: stroke fill;
+}
+
+/* Thicker stroke for very large display text */
+.stadium-headline-xl {
+  -webkit-text-stroke: 3px #22c55e;
+  color: #ffffff;
+  text-shadow:
+    0 0 40px rgba(34, 197, 94, 0.5),
+    0 3px 12px rgba(0, 0, 0, 0.9);
+  paint-order: stroke fill;
+}
+
+/* Badge style used in the bottom promo strip */
+.promo-badge {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
 @layer utilities {
 
   /* Hide ugly search cancel button in Chrome until we can style it properly */
