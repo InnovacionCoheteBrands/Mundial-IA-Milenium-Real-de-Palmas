@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "W7PVbXNXJLLs_ag7-pgZb"
+uri = "file://attached_assets/bg_stadium_abstract_1.png"
+type = "image"
+title = "stadium abstract paint strokes 1"
+
+[[generated]]
+id = "40J3l-nOdWteQ7r_wao4D"
+uri = "file://attached_assets/bg_stadium_abstract_2.png"
+type = "image"
+title = "stadium abstract paint strokes 2"
+
+[[generated]]
+id = "kdhwzEJnkTI-CF0_LNb7X"
+uri = "file://attached_assets/bg_stadium_abstract_3.png"
+type = "image"
+title = "stadium abstract paint strokes 3"
