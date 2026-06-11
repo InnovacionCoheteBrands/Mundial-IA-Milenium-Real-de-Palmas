@@ -734,9 +734,9 @@ export default function SingleFlowPage() {
           </h1>
         </div>
 
-        <main className="flex flex-1 flex-col items-center justify-start px-2 pb-4 sm:px-4">
+        <main className="flex flex-1 flex-col items-center justify-center px-2 py-2 sm:px-4 sm:py-4 md:py-8">
           {/* Card: transparent dark panel, no heavy opaque card */}
-          <div className="w-full max-w-sm overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-md shadow-2xl sm:max-w-md md:max-w-2xl lg:max-w-4xl">
+          <div className="w-full max-w-sm overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-md shadow-2xl sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
             {renderStepContent()}
           </div>
         </main>
