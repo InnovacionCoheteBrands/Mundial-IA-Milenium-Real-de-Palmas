@@ -21,7 +21,7 @@ import { useApp } from "@/lib/app-context";
 import { TEAMS, teamInfo, type TeamId } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import backgroundImage from "@assets/Captura_de_pantalla_2026-01-05_171649_1767827562768.png";
+import backgroundImage from "@assets/bg_stadium_abstract_2.png";
 import trophyImage from "@assets/ChatGPT_Image_6_ene_2026,_15_32_44_1767829210783.png";
 import mileniumLogo from "@assets/logo_milenium__1767829210784.png";
 import qrGallery from "@assets/qr-images-gallery.png";
