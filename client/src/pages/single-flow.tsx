@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import QRCode from "react-qr-code";
 import {
   ChevronRight,
   Check,
@@ -25,7 +26,6 @@ import backgroundImage from "@assets/bg_stadium_abstract_2.png";
 import trophyImage from "@assets/ChatGPT_Image_6_ene_2026,_15_32_44_1767829210783.png";
 import mileniumLogo from "@assets/logo_milenium__1767829210784.png";
 import realDePalmasLogo from "@assets/image_1781283435018.png";
-import qrGallery from "@assets/qr-images-gallery.png";
 
 const teamFlags: Record<TeamId, string> = {
   mexico: "https://flagcdn.com/w80/mx.png",
@@ -598,7 +598,13 @@ function ResultContent({ onRetry, onHome }: { onRetry: () => void; onHome: () =>
               />
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg bg-black/50 border border-white/15 p-3 sm:w-auto backdrop-blur-sm">
-              <img src={qrGallery} alt="QR Galería" className="h-20 w-20 sm:h-24 sm:w-24" data-testid="img-qr-gallery" />
+              <QRCode
+                value={`${window.location.origin}/images`}
+                size={96}
+                bgColor="transparent"
+                fgColor="#ffffff"
+                data-testid="img-qr-gallery"
+              />
               <p className="text-center text-[10px] text-white/50">Escanea para ver<br />todas las fotos</p>
             </div>
           </div>
