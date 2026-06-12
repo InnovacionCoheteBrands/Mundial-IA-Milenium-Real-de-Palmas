@@ -171,6 +171,36 @@ The final result must be INDISTINGUISHABLE from a real photograph taken at a Wor
 PRIORITY ORDER (if any conflict): Preserve faces → Preserve bodies/poses → Apply jersey → Add trophy → Replace background.`;
 }
 
+async function cropTo16x9(imageBase64: string): Promise<string> {
+  const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+  const buffer = Buffer.from(base64Data, "base64");
+  const image = sharp(buffer);
+  const { width, height } = await image.metadata();
+  if (!width || !height) return imageBase64;
+
+  const targetAspect = 16 / 9;
+  const originalAspect = width / height;
+
+  let cropWidth: number, cropHeight: number;
+  if (originalAspect > targetAspect) {
+    cropHeight = height;
+    cropWidth = Math.round(height * targetAspect);
+  } else {
+    cropWidth = width;
+    cropHeight = Math.round(width / targetAspect);
+  }
+
+  const left = Math.round((width - cropWidth) / 2);
+  const top = Math.round((height - cropHeight) / 2);
+
+  const croppedBuffer = await image
+    .extract({ left, top, width: cropWidth, height: cropHeight })
+    .jpeg({ quality: 90 })
+    .toBuffer();
+
+  return `data:image/jpeg;base64,${croppedBuffer.toString("base64")}`;
+}
+
 async function transformImage(originalImageBase64: string, team: TeamId): Promise<string> {
   const ai = getAIClient();
   const base64Data = originalImageBase64.replace(/^data:image\/\w+;base64,/, "");
@@ -237,7 +267,10 @@ export async function registerRoutes(
       const transformedImage = await transformImage(image, team as TeamId);
       console.log("Image transformation complete");
 
-      const watermarkedImage = await addWatermarkToImage(transformedImage);
+      const croppedImage = await cropTo16x9(transformedImage);
+      console.log("Cropped to 16:9");
+
+      const watermarkedImage = await addWatermarkToImage(croppedImage);
       console.log("Watermark applied");
 
       const transformation = await storage.createTransformation({

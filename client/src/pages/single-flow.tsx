@@ -617,9 +617,9 @@ function ResultContent({ onHome }: { onHome: () => void }) {
       {/* ── Image + QR row ── */}
       <div className="flex flex-row items-stretch gap-3 px-3 pb-3">
 
-        {/* Image */}
+        {/* Image — guaranteed 16:9 from server */}
         <div
-          className="relative flex-1 min-w-0 overflow-hidden rounded-lg"
+          className="relative flex-1 min-w-0 aspect-video overflow-hidden rounded-lg"
           style={{
             borderColor: teamColors?.primary ?? "#22c55e",
             borderWidth: "3px",
@@ -631,8 +631,7 @@ function ResultContent({ onHome }: { onHome: () => void }) {
           <img
             src={displayImage!}
             alt="Retrato mundialista"
-            className="block w-full h-auto"
-            style={{ maxHeight: "52vh" }}
+            className="w-full h-full object-cover"
             data-testid="img-result"
           />
         </div>
