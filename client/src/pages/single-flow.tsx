@@ -555,12 +555,12 @@ function ResultContent({ onHome }: { onHome: () => void }) {
 
   return (
     <div className="relative w-full overflow-hidden" data-testid="card-result-image">
-      {/* Full image — object-contain so the entire image is always visible */}
+      {/* Full image — natural aspect ratio, no black bars */}
       <img
         src={displayImage!}
         alt="Retrato mundialista"
-        className="block w-full object-contain bg-black"
-        style={{ maxHeight: "70vh" }}
+        className="block w-full h-auto"
+        style={{ maxHeight: "72vh" }}
         data-testid="img-result"
       />
 
@@ -599,14 +599,16 @@ function ResultContent({ onHome }: { onHome: () => void }) {
         </div>
         {/* QR code bottom-right */}
         <div className="flex flex-col items-center gap-1">
-          <QRCode
-            value={`${window.location.origin}/images`}
-            size={52}
-            bgColor="transparent"
-            fgColor="#ffffff"
-            data-testid="img-qr-gallery"
-          />
-          <p className="text-[8px] text-white/50 text-center leading-tight">Ver fotos</p>
+          <div className="rounded-md bg-white p-1.5">
+            <QRCode
+              value={`${window.location.origin}/images`}
+              size={52}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              data-testid="img-qr-gallery"
+            />
+          </div>
+          <p className="text-[8px] text-white/70 text-center leading-tight drop-shadow">Ver fotos</p>
         </div>
       </div>
     </div>
