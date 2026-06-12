@@ -554,63 +554,66 @@ function ResultContent({ onHome }: { onHome: () => void }) {
   }
 
   return (
-    <div className="relative w-full overflow-hidden" data-testid="card-result-image">
-      {/* Full image — natural aspect ratio, no black bars */}
-      <img
-        src={displayImage!}
-        alt="Retrato mundialista"
-        className="block w-full h-auto"
-        style={{ maxHeight: "72vh" }}
-        data-testid="img-result"
-      />
+    <div className="flex flex-row items-stretch" data-testid="card-result-image">
 
-      {/* Top-left overlay: Tomar otra foto */}
-      <button
-        onClick={onHome}
-        className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/70 border border-white/30 px-3 py-1.5 backdrop-blur-sm hover:bg-black/90 active:scale-95 transition-all"
-        data-testid="button-new-photo"
-      >
-        <Camera className="h-3.5 w-3.5 text-white" />
-        <span className="text-[11px] font-bold text-white uppercase tracking-wide">Tomar otra foto</span>
-      </button>
+      {/* ── Image section ── */}
+      <div className="relative flex-1 min-w-0 overflow-hidden flex items-center justify-center bg-black">
+        <img
+          src={displayImage!}
+          alt="Retrato mundialista"
+          className="block w-auto h-auto max-w-full"
+          style={{ maxHeight: "68vh" }}
+          data-testid="img-result"
+        />
 
-      {/* Top-right overlay: team badge */}
-      {selectedTeam && (
-        <div
-          className="absolute top-3 right-3 rounded-full px-2.5 py-1 backdrop-blur-sm border"
-          style={{
-            backgroundColor: `${teamColors?.primary ?? "#22c55e"}bb`,
-            borderColor: `${teamColors?.primary ?? "#22c55e"}60`,
-          }}
+        {/* Top-left overlay: Tomar otra foto */}
+        <button
+          onClick={onHome}
+          className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/70 border border-white/30 px-3 py-1.5 backdrop-blur-sm hover:bg-black/90 active:scale-95 transition-all"
+          data-testid="button-new-photo"
         >
-          <span className="text-[10px] font-black text-white uppercase tracking-wider drop-shadow">
-            {teamInfo[selectedTeam].flag} {teamInfo[selectedTeam].name}
-          </span>
-        </div>
-      )}
+          <Camera className="h-3.5 w-3.5 text-white" />
+          <span className="text-[11px] font-bold text-white uppercase tracking-wide">Tomar otra foto</span>
+        </button>
 
-      {/* Bottom gradient with title */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pt-10 pb-3 flex items-end justify-between">
-        <div>
+        {/* Top-right overlay: team badge */}
+        {selectedTeam && (
+          <div
+            className="absolute top-3 right-3 rounded-full px-2.5 py-1 backdrop-blur-sm border"
+            style={{
+              backgroundColor: `${teamColors?.primary ?? "#22c55e"}cc`,
+              borderColor: `${teamColors?.primary ?? "#22c55e"}60`,
+            }}
+          >
+            <span className="text-[10px] font-black text-white uppercase tracking-wider drop-shadow">
+              {teamInfo[selectedTeam].flag} {teamInfo[selectedTeam].name}
+            </span>
+          </div>
+        )}
+
+        {/* Bottom gradient with title */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent px-3 pt-8 pb-2.5">
           <p className="text-[9px] font-bold text-green-400 uppercase tracking-[0.2em]">— ¡Listo! —</p>
-          <p className="text-base font-black text-white uppercase tracking-tight leading-none stadium-headline-accent">
+          <p className="text-sm font-black text-white uppercase tracking-tight leading-none stadium-headline-accent">
             Tu Retrato
           </p>
         </div>
-        {/* QR code bottom-right */}
-        <div className="flex flex-col items-center gap-1">
-          <div className="rounded-md bg-white p-1.5">
-            <QRCode
-              value={`${window.location.origin}/images`}
-              size={52}
-              bgColor="#ffffff"
-              fgColor="#000000"
-              data-testid="img-qr-gallery"
-            />
-          </div>
-          <p className="text-[8px] text-white/70 text-center leading-tight drop-shadow">Ver fotos</p>
-        </div>
       </div>
+
+      {/* ── QR side panel ── */}
+      <div className="flex flex-col items-center justify-center gap-2 px-3 py-4 bg-black/60 border-l border-white/15 backdrop-blur-sm min-w-[88px]">
+        <div className="rounded-lg bg-white p-2">
+          <QRCode
+            value={`${window.location.origin}/images`}
+            size={64}
+            bgColor="#ffffff"
+            fgColor="#000000"
+            data-testid="img-qr-gallery"
+          />
+        </div>
+        <p className="text-[9px] text-white/70 text-center leading-tight">Escanea para<br />ver las fotos</p>
+      </div>
+
     </div>
   );
 }
