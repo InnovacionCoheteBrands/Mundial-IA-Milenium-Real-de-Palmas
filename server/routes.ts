@@ -73,65 +73,81 @@ function getAIClient() {
   });
 }
 
+function getJerseyDescription(team: TeamId): string {
+  const descriptions: Record<TeamId, string> = {
+    mexico: "Mexico national football team jersey: dark green (forest green) body with a subtle geometric/Aztec-inspired pattern, thin red and white vertical stripes on the sides, 'FMF' crest on the left chest, Adidas logo on the right chest. Home jersey style.",
+    usa: "United States (USMNT) national football team jersey: white body with bold red and blue color-block panels on the sides and shoulders, USSF crest on the left chest, Nike swoosh on the right chest. Modern home kit.",
+    canada: "Canada national football team jersey: bold red body with white accents, Canada Soccer crest on the left chest, Nike swoosh on the right chest. Solid red home kit with minimal detailing.",
+    spain: "Spain national football team jersey (La Roja): rich red (deep crimson) body with yellow collar trim and cuffs, RFEF crest on the left chest, Adidas logo on the right chest. Classic Spanish home kit.",
+    england: "England national football team jersey (Three Lions): clean white body with subtle red St. George cross detailing on the collar or sleeves, Three Lions crest on the left chest, Nike swoosh on the right chest. Classic all-white home kit.",
+    brazil: "Brazil national football team jersey (Seleção): bright canary yellow body with green collar and trim, CBF crest on the left chest, Nike swoosh on the right chest. Iconic yellow and green Brazilian home kit.",
+    argentina: "Argentina national football team jersey (La Albiceleste): light blue and white vertical stripes of equal width, AFA crest on the left chest, Adidas logo on the right chest. The iconic Messi-era sky blue and white striped home kit.",
+    portugal: "Portugal national football team jersey: dark green (bottle green) body with FPF crest on the left chest, Nike swoosh on the right chest. Dark green Portuguese away/third kit or alternately: deep red home kit with FPF crest.",
+  };
+  return descriptions[team];
+}
+
 function getTransformationPrompt(team: TeamId): string {
   const teamData = teamInfo[team];
-  
-  return `Transform this photo into a World Cup celebration scene. The photo may contain 1, 2, 3, 4, 5 or more people - ALL must be preserved and transformed.
+  const jerseyDesc = getJerseyDescription(team);
 
-=== ABSOLUTE PROHIBITIONS - NEVER DO ANY OF THESE ===
-PEOPLE:
-- NEVER remove, delete, hide, or crop out ANY person
-- NEVER add new people that weren't in the original
-- NEVER reduce the count of people in the image
+  return `You are a world-class professional photo retouching artist specializing in hyperrealistic digital compositing. Your task is to perform a MINIMAL, PRECISION photo edit — not to generate a new image.
 
-FACES (CRITICAL - DO NOT MODIFY):
-- NEVER change, replace, alter, or regenerate ANY face
-- NEVER modify facial features, bone structure, jaw, nose, eyes, mouth
-- NEVER change skin tone, skin texture, or complexion
-- NEVER change eye color or eye shape
-- NEVER remove or add facial hair (beard, mustache, stubble)
-- NEVER generate synthetic or AI faces - use ONLY the original faces
-- NEVER swap faces between people
+This is PHOTO RETOUCHING, not image generation. The input photo is the source of truth. You are making exactly TWO targeted changes and NOTHING else.
 
-BODIES (CRITICAL - DO NOT MODIFY):
-- NEVER change body type, body shape, or body size
-- NEVER change height proportions between people
-- NEVER change weight or build (thin, average, heavy)
-- NEVER change shoulder width or body frame
-- NEVER alter arms, hands, or body posture significantly
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 1 — JERSEY REPLACEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Replace the shirt/clothing of EVERY person visible in the photo with the official ${teamData.name} national football team jersey.
 
-=== WHAT TO PRESERVE FOR EACH PERSON ===
-For EVERY person (whether 1 person or 5+ people), keep EXACTLY:
-- Their EXACT face pixel-for-pixel from the input photo
-- Their exact body type, size, and proportions
-- Their exact skin tone and complexion
-- Their exact hairstyle, hair color, hair length
-- Their exact pose and body position
-- Their glasses, jewelry, or accessories if visible
-- Their relative positions to each other
+Jersey to apply: ${jerseyDesc}
 
-=== ONLY THESE CHANGES ARE ALLOWED ===
-1. CLOTHING ONLY:
-   - Replace ONLY the clothing with ${teamData.name} national team jersey
-   - Every single person gets the jersey - NO EXCEPTIONS
-   - Jersey must fit naturally on each person's actual body
+Technical execution requirements:
+• The jersey fabric must follow the natural folds, creases, and wrinkles of the person's actual body shape and posture — NOT a flat overlay
+• Match the exact lighting direction, shadows, and ambient light already present in the photo
+• Where skin is exposed (collar area, forearms, hands) preserve the exact original skin tone at the exact original boundary
+• The jersey seams, collar, and cuffs must align naturally with the person's neck, shoulders, and wrists
+• Result: viewer cannot tell the jersey was added — it must look like the person was always wearing it
 
-2. ONE TROPHY:
-   - Add FIFA World Cup Trophy held by ONE person
-   - Other people celebrate around naturally
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 2 — FIFA WORLD CUP TROPHY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add the official FIFA World Cup Trophy to the scene — held naturally by one of the people in the photo.
 
-3. BACKGROUND ONLY:
-   - Replace background with World Cup stadium
-   - Stadium, green pitch, lights, confetti
+Trophy description: The iconic 36.8 cm solid 18-karat gold trophy. Two human figures with outstretched arms supporting the Earth globe on top. Highly reflective polished gold surface with realistic specular highlights and environmental reflections.
 
-=== VERIFICATION CHECKLIST ===
-Count people in input → Output must have SAME count
-Each face → Must be IDENTICAL to input (not similar - IDENTICAL)
-Each body → Same type/size as input
-Each person → Wearing ${teamData.name} jersey
-Original clothing → None visible
+Technical execution requirements:
+• The trophy must be gripped at the base or stem by the person's actual hand/arm — use the existing arm position in the photo to determine the most natural placement
+• The trophy must cast a shadow consistent with the photo's light source direction
+• The gold surface must show reflections of the surrounding environment (not a flat gold color)
+• The person's fingers must realistically wrap around the trophy stem — correct occlusion and perspective
+• Result: trophy looks like it was physically present in the original photo shoot
 
-PRIORITY: If anything conflicts, preserve faces and bodies EXACTLY as they appear in the input photo.`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DO NOT CHANGE — ABSOLUTE PRESERVATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The following must be preserved PIXEL-PERFECT:
+
+FACES: Every face in the photo must be reproduced exactly — identical bone structure, exact eye shape and color, exact nose, exact mouth, exact skin tone, exact complexion, exact facial hair (beard/stubble/mustache), exact expression. NO face regeneration. NO "similar" faces — EXACT faces.
+
+BODIES: Every person's body type, proportions, height, weight/build, and posture must remain identical to the input.
+
+POSES: Every person's arm position, head tilt, stance, and gesture must be preserved exactly.
+
+BACKGROUND: The background must remain exactly as it is in the original photo — do NOT replace, modify, blur, or alter the background in any way.
+
+ACCESSORIES: Glasses, hats, jewelry, watches, and all accessories must remain exactly as in the input.
+
+HAIR: Every person's hairstyle, hair color, and hair length must be preserved exactly.
+
+PEOPLE COUNT: The output must contain the exact same number of people as the input — no additions, no removals.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUALITY STANDARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The final result must be INDISTINGUISHABLE from a real photograph taken in a professional setting. No compositing artifacts, no seam lines, no mismatched lighting, no cartoon or illustrative elements, no AI-generated faces. The only evidence that any editing occurred should be the jersey and the trophy — everything else must be identical to the input photo.
+
+PRIORITY ORDER (if any conflict): Preserve faces → Preserve bodies/poses → Apply jersey → Add trophy.`;
 }
 
 async function transformImage(originalImageBase64: string, team: TeamId): Promise<string> {
