@@ -9,9 +9,6 @@ import {
   RotateCcw,
   SwitchCamera,
   AlertCircle,
-  Download,
-  Share2,
-  Home,
   AlertTriangle,
   Loader2,
   Sparkles,
@@ -532,188 +529,84 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-function ResultContent({ onRetry, onHome }: { onRetry: () => void; onHome: () => void }) {
+function ResultContent({ onHome }: { onHome: () => void }) {
   const { selectedTeam, transformedImage, capturedImage, error } = useApp();
-  const { toast } = useToast();
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   const teamColors = selectedTeam ? teamInfo[selectedTeam].colors : null;
   const hasError = error !== null || !transformedImage;
   const displayImage = transformedImage || capturedImage;
 
-  const handleDownload = async () => {
-    const imageToDownload = transformedImage || capturedImage;
-    if (!imageToDownload) return;
-    try {
-      const response = await fetch(imageToDownload);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `fan-mundialista-${selectedTeam || "foto"}.jpg`;
-      link.style.display = "none";
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(blobUrl); }, 100);
-      toast({ title: "Imagen descargada", description: "Tu retrato mundialista se ha guardado correctamente." });
-    } catch {
-      const link = document.createElement("a");
-      link.href = imageToDownload;
-      link.download = `fan-mundialista-${selectedTeam || "foto"}.jpg`;
-      link.target = "_blank";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  const handleShare = async () => {
-    const imageToShare = transformedImage || capturedImage;
-    if (!imageToShare) return;
-    try {
-      const blob = await fetch(imageToShare).then((r) => r.blob());
-      const file = new File([blob], `fan-mundialista-${selectedTeam}.jpg`, { type: "image/jpeg" });
-      if (navigator.share && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: "Mi retrato mundialista",
-          text: `Mira mi transformación como fan de ${selectedTeam ? teamInfo[selectedTeam].name : "mi equipo"}!`,
-        });
-      } else {
-        handleDownload();
-      }
-    } catch {
-      handleDownload();
-    }
-  };
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center gap-4 px-4 py-8 text-center">
+        <AlertTriangle className="h-12 w-12 text-red-400" />
+        <p className="text-sm text-white/60">{error || "Hubo un problema al procesar tu foto."}</p>
+        <button
+          onClick={onHome}
+          className="flex items-center gap-2 rounded-full bg-green-600 hover:bg-green-500 transition-colors px-5 py-2"
+          data-testid="button-retry-home"
+        >
+          <Camera className="h-4 w-4 text-white" />
+          <span className="text-sm font-bold text-white uppercase tracking-wide">Tomar otra foto</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-0">
-      <div className="flex flex-col gap-2 px-3 pt-2 pb-2 sm:px-4">
-        <div className="text-center">
-          <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
-            {hasError ? "— Error —" : "— ¡Listo! —"}
-          </p>
-          <h2
-            className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-xl stadium-headline-accent"
-            data-testid="text-result-title"
-          >
-            {hasError ? "OCURRIÓ UN ERROR" : "TU RETRATO"}
-          </h2>
-          {selectedTeam && !hasError && (
-            <p className="text-[10px] text-white/60 uppercase tracking-widest">
-              Fan de {teamInfo[selectedTeam].name}
-            </p>
-          )}
+    <div className="relative w-full overflow-hidden" data-testid="card-result-image">
+      {/* Full image — object-contain so the entire image is always visible */}
+      <img
+        src={displayImage!}
+        alt="Retrato mundialista"
+        className="block w-full object-contain bg-black"
+        style={{ maxHeight: "70vh" }}
+        data-testid="img-result"
+      />
+
+      {/* Top-left overlay: Tomar otra foto */}
+      <button
+        onClick={onHome}
+        className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/70 border border-white/30 px-3 py-1.5 backdrop-blur-sm hover:bg-black/90 active:scale-95 transition-all"
+        data-testid="button-new-photo"
+      >
+        <Camera className="h-3.5 w-3.5 text-white" />
+        <span className="text-[11px] font-bold text-white uppercase tracking-wide">Tomar otra foto</span>
+      </button>
+
+      {/* Top-right overlay: team badge */}
+      {selectedTeam && (
+        <div
+          className="absolute top-3 right-3 rounded-full px-2.5 py-1 backdrop-blur-sm border"
+          style={{
+            backgroundColor: `${teamColors?.primary ?? "#22c55e"}bb`,
+            borderColor: `${teamColors?.primary ?? "#22c55e"}60`,
+          }}
+        >
+          <span className="text-[10px] font-black text-white uppercase tracking-wider drop-shadow">
+            {teamInfo[selectedTeam].flag} {teamInfo[selectedTeam].name}
+          </span>
         </div>
+      )}
 
-        {hasError ? (
-          <div className="flex flex-col items-center gap-3 py-3 text-center">
-            <AlertTriangle className="h-10 w-10 text-red-400" />
-            <p className="text-sm text-white/60">{error || "Hubo un problema al procesar tu foto."}</p>
-            {capturedImage && (
-              <img
-                src={capturedImage}
-                alt="Foto original"
-                className="w-full max-w-sm max-h-[35vh] rounded-md object-contain bg-black"
-                data-testid="img-original-fallback"
-              />
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
-            <div
-              className="relative w-full overflow-hidden rounded-lg sm:flex-1"
-              style={{
-                height: "42vh",
-                maxHeight: "42vh",
-                borderColor: teamColors?.primary ?? "#22c55e",
-                borderWidth: "3px",
-                borderStyle: "solid",
-                boxShadow: `0 0 24px ${teamColors?.primary ?? "#22c55e"}50`,
-              }}
-              data-testid="card-result-image"
-            >
-              <img
-                src={displayImage!}
-                alt="Retrato mundialista"
-                className="h-full w-full object-cover"
-                data-testid="img-result"
-              />
-            </div>
-            <div className="flex flex-row sm:flex-col items-center justify-center gap-2 rounded-lg bg-black/50 border border-white/15 px-3 py-2 sm:w-auto backdrop-blur-sm">
-              <QRCode
-                value={`${window.location.origin}/images`}
-                size={80}
-                bgColor="transparent"
-                fgColor="#ffffff"
-                data-testid="img-qr-gallery"
-              />
-              <p className="text-center text-[10px] text-white/50 leading-tight">Escanea para ver<br />todas las fotos</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Bottom action strip — style matches flyer promo band */}
-      <div className="w-full bg-black/75 border-t border-green-500/40 backdrop-blur-sm">
-        <div className="flex items-stretch divide-x divide-white/15 max-w-sm mx-auto">
-          {!hasError && (
-            <>
-              <button
-                className="flex-1 flex flex-col items-center gap-1 px-1 py-2.5 hover:bg-white/5 transition-colors"
-                onClick={handleDownload}
-                data-testid="button-download"
-              >
-                <div className="promo-badge rounded-sm px-1.5 py-0.5 mb-0.5">
-                  <span className="text-[8px] font-black text-white uppercase tracking-wider leading-none">ACCIÓN</span>
-                </div>
-                <Download className="h-5 w-5 text-white" />
-                <span className="text-[9px] font-bold text-white uppercase text-center leading-tight tracking-wide">
-                  DESCARGAR
-                </span>
-              </button>
-              <button
-                className="flex-1 flex flex-col items-center gap-1 px-1 py-2.5 hover:bg-white/5 transition-colors"
-                onClick={handleShare}
-                data-testid="button-share"
-              >
-                <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-sm px-1.5 py-0.5 mb-0.5 border border-green-400/30">
-                  <span className="text-[8px] font-black text-white uppercase tracking-wider leading-none">ACCIÓN</span>
-                </div>
-                <Share2 className="h-5 w-5 text-green-400" />
-                <span className="text-[9px] font-bold text-green-400 uppercase text-center leading-tight tracking-wide">
-                  COMPARTIR
-                </span>
-              </button>
-            </>
-          )}
-          <button
-            className="flex-1 flex flex-col items-center gap-1 px-1 py-2.5 hover:bg-white/5 transition-colors"
-            onClick={onRetry}
-            data-testid="button-retry"
-          >
-            <div className="promo-badge rounded-sm px-1.5 py-0.5 mb-0.5">
-              <span className="text-[8px] font-black text-white uppercase tracking-wider leading-none">ACCIÓN</span>
-            </div>
-            <RotateCcw className="h-5 w-5 text-white" />
-            <span className="text-[9px] font-bold text-white uppercase text-center leading-tight tracking-wide">
-              OTRA<br />VEZ
-            </span>
-          </button>
-          <button
-            className="flex-1 flex flex-col items-center gap-1 px-1 py-2.5 hover:bg-white/5 transition-colors"
-            onClick={onHome}
-            data-testid="button-home"
-          >
-            <div className="promo-badge rounded-sm px-1.5 py-0.5 mb-0.5">
-              <span className="text-[8px] font-black text-white uppercase tracking-wider leading-none">ACCIÓN</span>
-            </div>
-            <Home className="h-5 w-5 text-white" />
-            <span className="text-[9px] font-bold text-white uppercase text-center leading-tight tracking-wide">
-              INICIO
-            </span>
-          </button>
+      {/* Bottom gradient with title */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pt-10 pb-3 flex items-end justify-between">
+        <div>
+          <p className="text-[9px] font-bold text-green-400 uppercase tracking-[0.2em]">— ¡Listo! —</p>
+          <p className="text-base font-black text-white uppercase tracking-tight leading-none stadium-headline-accent">
+            Tu Retrato
+          </p>
+        </div>
+        {/* QR code bottom-right */}
+        <div className="flex flex-col items-center gap-1">
+          <QRCode
+            value={`${window.location.origin}/images`}
+            size={52}
+            bgColor="transparent"
+            fgColor="#ffffff"
+            data-testid="img-qr-gallery"
+          />
+          <p className="text-[8px] text-white/50 text-center leading-tight">Ver fotos</p>
         </div>
       </div>
     </div>
@@ -739,7 +632,7 @@ export default function SingleFlowPage() {
       case "team":     return <TeamContent onContinue={goToNextStep} />;
       case "capture":  return <CaptureContent onContinue={goToNextStep} />;
       case "processing": return <ProcessingContent onComplete={goToNextStep} />;
-      case "result":   return <ResultContent onRetry={handleRetry} onHome={handleHome} />;
+      case "result":   return <ResultContent onHome={handleHome} />;
       default:         return <IntroContent onContinue={goToNextStep} />;
     }
   };
