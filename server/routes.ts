@@ -93,7 +93,7 @@ function getTransformationPrompt(team: TeamId): string {
 
   return `You are a world-class professional photo retouching artist specializing in hyperrealistic digital compositing. Your task is to perform a MINIMAL, PRECISION photo edit — not to generate a new image.
 
-This is PHOTO RETOUCHING, not image generation. The input photo is the source of truth. You are making exactly TWO targeted changes and NOTHING else.
+This is PHOTO RETOUCHING, not image generation. The input photo is the source of truth. You are making exactly THREE targeted changes and NOTHING else.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CHANGE 1 — JERSEY REPLACEMENT
@@ -124,6 +124,27 @@ Technical execution requirements:
 • Result: trophy looks like it was physically present in the original photo shoot
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGE 3 — STADIUM BACKGROUND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Replace the background entirely with a hyperrealistic FIFA World Cup stadium scene. The person(s) must appear naturally placed inside the stadium environment — either in the stands among cheering fans, or at pitch-side near the green field.
+
+Stadium scene details:
+• A massive, modern, fully packed football stadium under bright stadium floodlights
+• Tens of thousands of fans in colorful jerseys visible in the stands, creating a wall of color and energy
+• Vivid green grass pitch visible in the foreground or background
+• Celebratory confetti, streamers, or ticker tape falling through the air
+• Warm golden stadium lighting with dramatic rim/back lighting on the subjects
+• Wide-angle stadium architecture visible (multiple tiers of seating, scoreboard, stadium roof)
+• Atmosphere: victory celebration — the final whistle has just blown
+
+Technical execution requirements (CRITICAL for avoiding collage effect):
+• The edge between the person(s) and the new background must be SEAMLESSLY BLENDED — no hard cutout edges, no halos, no fringing. Use realistic edge softening that mimics how a camera lens captures foreground subjects against bright backgrounds.
+• Apply a SHALLOW DEPTH OF FIELD: the background must be realistically blurred (bokeh effect, ~f/2.8 equivalent), as if photographed with a portrait lens. This is the most important technique for making background compositing look real.
+• The stadium background lighting must MATCH the lighting direction already on the person's face and body — if the original photo has frontal lighting, the stadium background must show a corresponding frontal light source direction.
+• Add subtle atmospheric haze, lens flare, or bloom from the stadium floodlights to unify the foreground and background color temperature.
+• The person(s) must feel EMBEDDED IN the stadium — not pasted in front of it. Scale the stadium background so the subjects are positioned naturally within the scene (not floating or disproportionately large).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DO NOT CHANGE — ABSOLUTE PRESERVATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 The following must be preserved PIXEL-PERFECT:
@@ -134,7 +155,7 @@ BODIES: Every person's body type, proportions, height, weight/build, and posture
 
 POSES: Every person's arm position, head tilt, stance, and gesture must be preserved exactly.
 
-BACKGROUND: The background must remain exactly as it is in the original photo — do NOT replace, modify, blur, or alter the background in any way.
+BACKGROUND: Replace the background with a hyperrealistic World Cup stadium environment (see CHANGE 3 below). Everything EXCEPT the background must remain exactly as in the original photo.
 
 ACCESSORIES: Glasses, hats, jewelry, watches, and all accessories must remain exactly as in the input.
 
@@ -145,9 +166,9 @@ PEOPLE COUNT: The output must contain the exact same number of people as the inp
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 QUALITY STANDARD
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-The final result must be INDISTINGUISHABLE from a real photograph taken in a professional setting. No compositing artifacts, no seam lines, no mismatched lighting, no cartoon or illustrative elements, no AI-generated faces. The only evidence that any editing occurred should be the jersey and the trophy — everything else must be identical to the input photo.
+The final result must be INDISTINGUISHABLE from a real photograph taken at a World Cup stadium. No hard cutout edges, no compositing seams, no mismatched lighting, no cartoon or illustrative elements, no AI-generated faces. A viewer should believe the subjects were photographed directly inside the stadium.
 
-PRIORITY ORDER (if any conflict): Preserve faces → Preserve bodies/poses → Apply jersey → Add trophy.`;
+PRIORITY ORDER (if any conflict): Preserve faces → Preserve bodies/poses → Apply jersey → Add trophy → Replace background.`;
 }
 
 async function transformImage(originalImageBase64: string, team: TeamId): Promise<string> {
