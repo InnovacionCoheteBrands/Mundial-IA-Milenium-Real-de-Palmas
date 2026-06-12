@@ -10,6 +10,9 @@ import {
   SwitchCamera,
   AlertCircle,
   AlertTriangle,
+  Download,
+  Share2,
+  Home,
   Loader2,
   Sparkles,
   Trophy,
@@ -531,10 +534,52 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
 
 function ResultContent({ onHome }: { onHome: () => void }) {
   const { selectedTeam, transformedImage, capturedImage, error } = useApp();
+  const { toast } = useToast();
 
   const teamColors = selectedTeam ? teamInfo[selectedTeam].colors : null;
   const hasError = error !== null || !transformedImage;
   const displayImage = transformedImage || capturedImage;
+
+  const handleDownload = async () => {
+    const img = transformedImage || capturedImage;
+    if (!img) return;
+    try {
+      const blob = await fetch(img).then((r) => r.blob());
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fan-mundialista-${selectedTeam || "foto"}.jpg`;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+      toast({ title: "Imagen descargada", description: "Tu retrato mundialista se ha guardado." });
+    } catch {
+      const a = document.createElement("a");
+      a.href = img;
+      a.download = `fan-mundialista-${selectedTeam || "foto"}.jpg`;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
+
+  const handleShare = async () => {
+    const img = transformedImage || capturedImage;
+    if (!img) return;
+    try {
+      const blob = await fetch(img).then((r) => r.blob());
+      const file = new File([blob], `fan-mundialista-${selectedTeam}.jpg`, { type: "image/jpeg" });
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Mi retrato mundialista" });
+      } else {
+        handleDownload();
+      }
+    } catch {
+      handleDownload();
+    }
+  };
 
   if (hasError) {
     return (
@@ -554,64 +599,101 @@ function ResultContent({ onHome }: { onHome: () => void }) {
   }
 
   return (
-    <div className="flex flex-row items-stretch" data-testid="card-result-image">
+    <div className="flex flex-col gap-0" data-testid="card-result">
 
-      {/* ── Image section ── */}
-      <div className="relative flex-1 min-w-0 overflow-hidden flex items-center justify-center bg-black">
-        <img
-          src={displayImage!}
-          alt="Retrato mundialista"
-          className="block w-auto h-auto max-w-full"
-          style={{ maxHeight: "68vh" }}
-          data-testid="img-result"
-        />
-
-        {/* Top-left overlay: Tomar otra foto */}
-        <button
-          onClick={onHome}
-          className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/70 border border-white/30 px-3 py-1.5 backdrop-blur-sm hover:bg-black/90 active:scale-95 transition-all"
-          data-testid="button-new-photo"
-        >
-          <Camera className="h-3.5 w-3.5 text-white" />
-          <span className="text-[11px] font-bold text-white uppercase tracking-wide">Tomar otra foto</span>
-        </button>
-
-        {/* Top-right overlay: team badge */}
+      {/* ── Title section ── */}
+      <div className="px-4 pt-3 pb-2 text-center">
+        <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em]">— ¡Listo! —</p>
+        <h2 className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg stadium-headline-accent" data-testid="text-result-title">
+          Tu Retrato Mundialista
+        </h2>
         {selectedTeam && (
-          <div
-            className="absolute top-3 right-3 rounded-full px-2.5 py-1 backdrop-blur-sm border"
-            style={{
-              backgroundColor: `${teamColors?.primary ?? "#22c55e"}cc`,
-              borderColor: `${teamColors?.primary ?? "#22c55e"}60`,
-            }}
-          >
-            <span className="text-[10px] font-black text-white uppercase tracking-wider drop-shadow">
-              {teamInfo[selectedTeam].flag} {teamInfo[selectedTeam].name}
-            </span>
-          </div>
-        )}
-
-        {/* Bottom gradient with title */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent px-3 pt-8 pb-2.5">
-          <p className="text-[9px] font-bold text-green-400 uppercase tracking-[0.2em]">— ¡Listo! —</p>
-          <p className="text-sm font-black text-white uppercase tracking-tight leading-none stadium-headline-accent">
-            Tu Retrato
+          <p className="text-[10px] text-white/60 mt-0.5 uppercase tracking-widest">
+            {teamInfo[selectedTeam].flag} Fan de {teamInfo[selectedTeam].name}
           </p>
-        </div>
+        )}
       </div>
 
-      {/* ── QR side panel ── */}
-      <div className="flex flex-col items-center justify-center gap-2 px-3 py-4 bg-black/60 border-l border-white/15 backdrop-blur-sm min-w-[88px]">
-        <div className="rounded-lg bg-white p-2">
-          <QRCode
-            value={`${window.location.origin}/images`}
-            size={64}
-            bgColor="#ffffff"
-            fgColor="#000000"
-            data-testid="img-qr-gallery"
+      {/* ── Image + QR row ── */}
+      <div className="flex flex-row items-stretch gap-3 px-3 pb-3">
+
+        {/* Image */}
+        <div
+          className="relative flex-1 min-w-0 overflow-hidden rounded-lg"
+          style={{
+            borderColor: teamColors?.primary ?? "#22c55e",
+            borderWidth: "3px",
+            borderStyle: "solid",
+            boxShadow: `0 0 20px ${teamColors?.primary ?? "#22c55e"}50`,
+          }}
+          data-testid="card-result-image"
+        >
+          <img
+            src={displayImage!}
+            alt="Retrato mundialista"
+            className="block w-full h-auto"
+            style={{ maxHeight: "52vh" }}
+            data-testid="img-result"
           />
         </div>
-        <p className="text-[9px] text-white/70 text-center leading-tight">Escanea para<br />ver las fotos</p>
+
+        {/* QR panel */}
+        <div className="flex flex-col items-center justify-center gap-2 rounded-lg bg-black/50 border border-white/15 backdrop-blur-sm px-3 py-3 min-w-[90px]">
+          <div className="rounded-lg bg-white p-2">
+            <QRCode
+              value={`${window.location.origin}/images`}
+              size={72}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              data-testid="img-qr-gallery"
+            />
+          </div>
+          <p className="text-[9px] font-bold text-white/70 text-center uppercase tracking-wide leading-tight">
+            Escanea para ver<br />todas las fotos
+          </p>
+        </div>
+
+      </div>
+
+      {/* ── Action buttons ── */}
+      <div className="flex flex-col gap-2 px-3 pb-3">
+        {/* Download — primary */}
+        <div className="flex gap-2">
+          <button
+            onClick={handleDownload}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 hover:bg-green-500 active:scale-[0.98] transition-all px-4 py-2.5"
+            data-testid="button-download"
+          >
+            <Download className="h-4 w-4 text-white" />
+            <span className="text-sm font-black text-white uppercase tracking-wider">Descargar</span>
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all px-3 py-2.5"
+            data-testid="button-share"
+          >
+            <Share2 className="h-4 w-4 text-white" />
+          </button>
+        </div>
+        {/* Secondary: retry + home */}
+        <div className="flex gap-2">
+          <button
+            onClick={onHome}
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white/8 hover:bg-white/15 border border-white/15 transition-all px-3 py-2"
+            data-testid="button-retry"
+          >
+            <RotateCcw className="h-3.5 w-3.5 text-white/70" />
+            <span className="text-xs font-bold text-white/70 uppercase tracking-wide">Tomar otra foto</span>
+          </button>
+          <button
+            onClick={onHome}
+            className="flex items-center justify-center gap-1.5 rounded-lg bg-white/8 hover:bg-white/15 border border-white/15 transition-all px-3 py-2"
+            data-testid="button-home"
+          >
+            <Home className="h-3.5 w-3.5 text-white/50" />
+            <span className="text-xs text-white/50 uppercase tracking-wide">Inicio</span>
+          </button>
+        </div>
       </div>
 
     </div>
