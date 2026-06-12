@@ -24,7 +24,7 @@ import { apiRequest } from "@/lib/queryClient";
 import backgroundImage from "@assets/bg_stadium_abstract_2.png";
 import trophyImage from "@assets/ChatGPT_Image_6_ene_2026,_15_32_44_1767829210783.png";
 import mileniumLogo from "@assets/logo_milenium__1767829210784.png";
-import realDePalmasLogo from "@assets/real_de_palmas_logo.png";
+import realDePalmasLogo from "@assets/image_1781283435018.png";
 import qrGallery from "@assets/qr-images-gallery.png";
 
 const teamFlags: Record<TeamId, string> = {
@@ -705,29 +705,28 @@ export default function SingleFlowPage() {
       <div className="fixed inset-0 stadium-overlay" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
-        {/* Header: Real de Palmas logo on top, then trophy + Milenium side by side */}
-        <header className="flex flex-col items-center pt-4 pb-2 px-4 sm:pt-6">
+        {/* Header: trophy + Real de Palmas + Milenium in a single row */}
+        <header className="flex items-center justify-center gap-3 pt-4 pb-2 px-4 sm:pt-6 sm:gap-4">
+          <img
+            src={trophyImage}
+            alt="Copa del Mundial"
+            className="h-14 w-auto object-contain drop-shadow-2xl sm:h-16 md:h-20"
+            data-testid="img-trophy"
+          />
+          <div className="h-12 w-px bg-white/20 sm:h-14" />
           <img
             src={realDePalmasLogo}
             alt="Real de Palmas Residencial"
-            className="h-24 w-auto object-contain drop-shadow-lg sm:h-32 md:h-40"
+            className="h-12 w-auto object-contain drop-shadow-lg sm:h-16 md:h-20"
             data-testid="img-real-de-palmas-logo"
           />
-          <div className="mt-2 flex items-center justify-center gap-3 sm:gap-5">
-            <img
-              src={trophyImage}
-              alt="Copa del Mundial"
-              className="h-10 w-auto object-contain drop-shadow-2xl sm:h-12 md:h-14"
-              data-testid="img-trophy"
-            />
-            <div className="h-8 w-px bg-white/20 sm:h-10" />
-            <img
-              src={mileniumLogo}
-              alt="Milenium"
-              className="h-8 w-auto object-contain drop-shadow-lg sm:h-10 md:h-12"
-              data-testid="img-milenium-logo"
-            />
-          </div>
+          <div className="h-12 w-px bg-white/20 sm:h-14" />
+          <img
+            src={mileniumLogo}
+            alt="Milenium"
+            className="h-10 w-auto object-contain drop-shadow-lg sm:h-12 md:h-14"
+            data-testid="img-milenium-logo"
+          />
         </header>
 
         {/* Main title — Real de Palmas style two-line headline */}
