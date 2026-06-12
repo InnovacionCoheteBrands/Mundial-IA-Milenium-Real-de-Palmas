@@ -5,8 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Download, Image as ImageIcon, Home } from "lucide-react";
 import { Link } from "wouter";
 import { type Transformation, teamInfo, type TeamId } from "@shared/schema";
-import backgroundImage from "@assets/Captura_de_pantalla_2026-01-05_171649_1767827562768.png";
+import backgroundImage from "@assets/bg_stadium_abstract_2.png";
+import trophyImage from "@assets/ChatGPT_Image_6_ene_2026,_15_32_44_1767829210783.png";
 import mileniumLogo from "@assets/logo_milenium__1767829210784.png";
+import realDePalmasLogo from "@assets/image_1781283435018.png";
 
 export default function ImagesGallery() {
   const { data: transformations, isLoading } = useQuery<Transformation[]>({
@@ -25,60 +27,90 @@ export default function ImagesGallery() {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen w-full overflow-hidden">
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${backgroundImage})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
-      </div>
+      />
+      <div className="fixed inset-0 stadium-overlay" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="flex items-center justify-between gap-4 p-4">
+        {/* Header: trophy + Real de Palmas + Milenium in a single row */}
+        <header className="flex items-center justify-center gap-3 pt-4 pb-2 px-4 sm:pt-6 sm:gap-4">
+          <img
+            src={trophyImage}
+            alt="Copa del Mundial"
+            className="h-12 w-auto object-contain drop-shadow-2xl sm:h-14 md:h-16"
+            data-testid="img-trophy"
+          />
+          <div className="h-10 w-px bg-white/20 sm:h-12" />
+          <img
+            src={realDePalmasLogo}
+            alt="Real de Palmas Residencial"
+            className="h-10 w-auto object-contain drop-shadow-lg sm:h-14 md:h-16"
+            data-testid="img-real-de-palmas-logo"
+          />
+          <div className="h-10 w-px bg-white/20 sm:h-12" />
           <img
             src={mileniumLogo}
             alt="Milenium"
-            className="h-8 w-auto object-contain sm:h-10"
+            className="h-8 w-auto object-contain drop-shadow-lg sm:h-10 md:h-12"
+            data-testid="img-milenium-logo"
           />
-          <Link href="/">
-            <Button variant="outline" size="sm" className="gap-2">
+          <Link href="/" className="absolute right-4 sm:right-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 border border-white/20 bg-white/10 text-white hover:bg-white/20"
+            >
               <Home className="h-4 w-4" />
               Inicio
             </Button>
           </Link>
         </header>
 
+        {/* Title */}
+        <div className="relative z-10 flex flex-col items-center text-center px-4 pt-2 pb-3">
+          <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
+            — Galería —
+          </p>
+          <h1
+            className="text-2xl font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-3xl md:text-4xl stadium-headline-accent"
+            data-testid="text-gallery-title"
+          >
+            GALERÍA DE FANS
+          </h1>
+          <p className="text-[10px] text-white/50 mt-0.5 uppercase tracking-widest">
+            ⚽ Copa del Mundo 2026 ⚽
+          </p>
+        </div>
+
         <main className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="mx-auto max-w-6xl">
-            <h1
-              className="mb-6 text-center text-2xl font-bold text-white sm:text-3xl"
-              data-testid="text-gallery-title"
-            >
-              Galería de Fans
-            </h1>
-
             {isLoading ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton key={i} className="aspect-square w-full rounded-md" />
+                  <Skeleton key={i} className="aspect-square w-full rounded-xl bg-white/10" />
                 ))}
               </div>
             ) : !transformations || transformations.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <ImageIcon className="mb-4 h-16 w-16 text-white/50" />
+                <div className="rounded-full border border-green-500/40 bg-black/40 p-4 mb-4">
+                  <ImageIcon className="h-12 w-12 text-green-400" />
+                </div>
                 <h2
-                  className="mb-2 text-xl font-semibold text-white"
+                  className="mb-2 text-xl font-black text-white uppercase tracking-widest"
                   data-testid="text-empty-state"
                 >
-                  Sin imágenes aún
+                  SIN IMÁGENES AÚN
                 </h2>
-                <p className="text-white/70">
+                <p className="text-sm text-white/60">
                   Las transformaciones realizadas aparecerán aquí
                 </p>
               </div>
             ) : (
               <>
-                <p className="mb-6 text-center text-white/70">
+                <p className="mb-4 text-center text-xs text-white/60 uppercase tracking-widest">
                   {transformations.length} imágenes guardadas
                 </p>
 
@@ -90,7 +122,7 @@ export default function ImagesGallery() {
                     return (
                       <Card
                         key={transformation.id}
-                        className="group relative aspect-square overflow-hidden"
+                        className="group relative aspect-square overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-sm"
                         data-testid={`card-image-${transformation.id}`}
                       >
                         <img
@@ -104,7 +136,7 @@ export default function ImagesGallery() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="text-white"
+                            className="text-white hover:bg-white/20"
                             onClick={() =>
                               handleDownload(
                                 transformation.transformedImageUrl,
@@ -119,7 +151,7 @@ export default function ImagesGallery() {
                         </div>
 
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-3 py-2">
-                          <p className="text-xs font-medium text-white">
+                          <p className="text-xs font-bold text-white tracking-wide">
                             {teamData?.name || team}
                           </p>
                         </div>
@@ -131,6 +163,12 @@ export default function ImagesGallery() {
             )}
           </div>
         </main>
+
+        <footer className="py-2 text-center">
+          <p className="text-[10px] text-white/20 tracking-wide uppercase">
+            ⚽ Tecnología de COHETE BRANDS ⚽
+          </p>
+        </footer>
       </div>
     </div>
   );
