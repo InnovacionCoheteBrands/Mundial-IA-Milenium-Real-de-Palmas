@@ -589,42 +589,44 @@ function ResultContent({ onRetry, onHome }: { onRetry: () => void; onHome: () =>
 
   return (
     <div className="flex flex-col gap-0">
-      <div className="flex flex-col gap-3 px-3 pt-4 pb-3 sm:gap-4 sm:px-4 sm:pt-5">
+      <div className="flex flex-col gap-2 px-3 pt-2 pb-2 sm:px-4">
         <div className="text-center">
           <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
             {hasError ? "— Error —" : "— ¡Listo! —"}
           </p>
           <h2
-            className="text-xl font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-2xl stadium-headline-accent"
+            className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-xl stadium-headline-accent"
             data-testid="text-result-title"
           >
             {hasError ? "OCURRIÓ UN ERROR" : "TU RETRATO"}
           </h2>
           {selectedTeam && !hasError && (
-            <p className="text-[10px] text-white/60 mt-0.5 uppercase tracking-widest">
+            <p className="text-[10px] text-white/60 uppercase tracking-widest">
               Fan de {teamInfo[selectedTeam].name}
             </p>
           )}
         </div>
 
         {hasError ? (
-          <div className="flex flex-col items-center gap-4 py-4 text-center">
-            <AlertTriangle className="h-12 w-12 text-red-400" />
+          <div className="flex flex-col items-center gap-3 py-3 text-center">
+            <AlertTriangle className="h-10 w-10 text-red-400" />
             <p className="text-sm text-white/60">{error || "Hubo un problema al procesar tu foto."}</p>
             {capturedImage && (
               <img
                 src={capturedImage}
                 alt="Foto original"
-                className={`w-full max-w-sm rounded-md ${isMobile ? "aspect-[3/4] object-contain bg-black" : "aspect-video object-cover"}`}
+                className="w-full max-w-sm max-h-[35vh] rounded-md object-contain bg-black"
                 data-testid="img-original-fallback"
               />
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
             <div
-              className={`relative w-full overflow-hidden rounded-lg sm:flex-1 ${isMobile ? "aspect-[3/4]" : "aspect-video"}`}
+              className="relative w-full overflow-hidden rounded-lg sm:flex-1"
               style={{
+                height: "42vh",
+                maxHeight: "42vh",
                 borderColor: teamColors?.primary ?? "#22c55e",
                 borderWidth: "3px",
                 borderStyle: "solid",
@@ -635,19 +637,19 @@ function ResultContent({ onRetry, onHome }: { onRetry: () => void; onHome: () =>
               <img
                 src={displayImage!}
                 alt="Retrato mundialista"
-                className={`h-full w-full ${isMobile ? "object-contain bg-black" : "object-cover"}`}
+                className="h-full w-full object-cover"
                 data-testid="img-result"
               />
             </div>
-            <div className="flex flex-col items-center gap-2 rounded-lg bg-black/50 border border-white/15 p-3 sm:w-auto backdrop-blur-sm">
+            <div className="flex flex-row sm:flex-col items-center justify-center gap-2 rounded-lg bg-black/50 border border-white/15 px-3 py-2 sm:w-auto backdrop-blur-sm">
               <QRCode
                 value={`${window.location.origin}/images`}
-                size={96}
+                size={80}
                 bgColor="transparent"
                 fgColor="#ffffff"
                 data-testid="img-qr-gallery"
               />
-              <p className="text-center text-[10px] text-white/50">Escanea para ver<br />todas las fotos</p>
+              <p className="text-center text-[10px] text-white/50 leading-tight">Escanea para ver<br />todas las fotos</p>
             </div>
           </div>
         )}
