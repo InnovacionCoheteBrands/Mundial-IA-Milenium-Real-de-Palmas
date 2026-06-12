@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect, type ChangeEvent } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import QRCode from "react-qr-code";
@@ -209,6 +209,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const { selectedTeam, setCapturedImage } = useApp();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -233,11 +234,12 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const startCamera = useCallback(async () => {
     try {
       stopCamera();
-      const videoConstraints = isMobile
-        ? { facingMode, width: { ideal: 1080 }, height: { ideal: 1920 }, aspectRatio: { ideal: 9 / 16 } }
-        : { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 }, aspectRatio: { ideal: 16 / 9 } };
-
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: false });
+      let mediaStream: MediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: false });
+      } catch {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
       streamRef.current = mediaStream;
       setHasPermission(true);
       setError(null);
@@ -247,7 +249,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
       setHasPermission(false);
       setError("No se pudo acceder a la cámara.");
     }
-  }, [facingMode, stopCamera, isMobile]);
+  }, [facingMode, stopCamera]);
 
   useEffect(() => {
     startCamera();
@@ -295,110 +297,150 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     }
   };
 
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      if (result) {
+        stopCamera();
+        setCapturedPreview(result);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const borderStyle = {
+    borderColor: teamColors?.primary ?? "#22c55e",
+    borderWidth: "3px",
+    borderStyle: "solid" as const,
+    boxShadow: `0 0 20px ${teamColors?.primary ?? "#22c55e"}40`,
+  };
+
   return (
     <div className="flex flex-col gap-0">
-      <div className="flex flex-col gap-3 px-3 pt-4 pb-3 sm:gap-4 sm:px-4 sm:pt-5">
+      <div className="flex flex-col gap-2 px-3 pt-3 pb-2 sm:px-4">
         <div className="text-center">
           <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
             — Captura —
           </p>
-          <h2 className="text-xl font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-2xl stadium-headline-accent">
+          <h2 className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-xl stadium-headline-accent">
             TU FOTO
           </h2>
-          <p className="text-[10px] text-white/50 mt-0.5">
-            {isMobile ? "Toma una foto vertical" : "Toma una foto horizontal"}
+          <p className="text-[10px] text-white/50">
+            {isMobile ? "Toma o sube una foto" : "Usa la cámara o sube una foto"}
           </p>
         </div>
 
-        <div
-          className={`relative w-full overflow-hidden rounded-md sm:rounded-lg ${isMobile ? "aspect-[3/4]" : "aspect-video"}`}
-          style={{
-            borderColor: teamColors?.primary ?? "#22c55e",
-            borderWidth: "3px",
-            borderStyle: "solid",
-            boxShadow: `0 0 20px ${teamColors?.primary ?? "#22c55e"}40`,
-          }}
-          data-testid="card-camera-preview"
-        >
-          {capturedPreview ? (
-            <img src={capturedPreview} alt="Foto capturada" className="h-full w-full object-cover" data-testid="img-captured-preview" />
-          ) : hasPermission === false ? (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black/60 p-4 text-center">
-              <AlertCircle className="h-10 w-10 text-red-400" />
-              <p className="text-sm text-white/70">{error}</p>
-              <p className="text-xs text-white/50">Por favor permite el acceso a la cámara para continuar</p>
-            </div>
-          ) : (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className={`h-full w-full ${isMobile ? "object-contain bg-black" : "object-cover"} ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
-              data-testid="video-camera"
-            />
-          )}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+          <div
+            className={`relative w-full overflow-hidden rounded-md sm:rounded-lg sm:flex-1 ${isMobile ? "aspect-[3/4]" : "aspect-video"}`}
+            style={borderStyle}
+            data-testid="card-camera-preview"
+          >
+            {capturedPreview ? (
+              <img src={capturedPreview} alt="Foto capturada" className="h-full w-full object-cover" data-testid="img-captured-preview" />
+            ) : hasPermission === false ? (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-black/60 p-4 text-center">
+                <AlertCircle className="h-8 w-8 text-red-400" />
+                <p className="text-xs font-semibold text-white/80">{error}</p>
+                <p className="text-[10px] text-white/50">Usa el botón de abajo para subir una foto</p>
+              </div>
+            ) : (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`h-full w-full ${isMobile ? "object-contain bg-black" : "object-cover"} ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+                data-testid="video-camera"
+              />
+            )}
 
-          {hasPermission && !capturedPreview && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-2 bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
-              onClick={switchCamera}
-              data-testid="button-switch-camera"
-            >
-              <SwitchCamera className="h-4 w-4" />
-            </Button>
-          )}
+            {hasPermission && !capturedPreview && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-2 bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
+                onClick={switchCamera}
+                data-testid="button-switch-camera"
+              >
+                <SwitchCamera className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          <div className="flex gap-2 sm:w-36 sm:flex-col sm:justify-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="user"
+              className="hidden"
+              onChange={handleFileUpload}
+              data-testid="input-file-upload"
+            />
+            {capturedPreview ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="flex-1 gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 sm:w-full sm:flex-none"
+                  onClick={retakePhoto}
+                  disabled={isCompressing}
+                  data-testid="button-retake"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span>Volver</span>
+                </Button>
+                <Button
+                  size="default"
+                  className="flex-1 gap-1 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50 sm:w-full sm:flex-none"
+                  onClick={confirmPhoto}
+                  disabled={isCompressing}
+                  data-testid="button-confirm"
+                >
+                  {isCompressing ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /><span className="text-xs">Preparando</span></>
+                  ) : (
+                    <><Sparkles className="h-4 w-4" /><span className="text-xs">¡Transformar!</span></>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                {hasPermission && (
+                  <Button
+                    size="default"
+                    className="flex-1 gap-2 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50 sm:w-full sm:flex-none"
+                    onClick={capturePhoto}
+                    data-testid="button-capture"
+                  >
+                    <Camera className="h-4 w-4" />
+                    <span className="text-xs">Capturar</span>
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="default"
+                  className={`gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 sm:w-full sm:flex-none ${hasPermission ? "flex-1" : "w-full"}`}
+                  onClick={() => fileInputRef.current?.click()}
+                  data-testid="button-upload"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  <span className="text-xs">Subir foto</span>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         <canvas ref={canvasRef} className="hidden" />
-
-        <div className="flex flex-col gap-2">
-          {capturedPreview ? (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="default"
-                className="flex-1 gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20"
-                onClick={retakePhoto}
-                disabled={isCompressing}
-                data-testid="button-retake"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Volver
-              </Button>
-              <Button
-                size="default"
-                className="flex-1 gap-2 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50"
-                onClick={confirmPhoto}
-                disabled={isCompressing}
-                data-testid="button-confirm"
-              >
-                {isCompressing ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" />Preparando...</>
-                ) : (
-                  <><Sparkles className="h-4 w-4" />¡Transformar!</>
-                )}
-              </Button>
-            </div>
-          ) : (
-            hasPermission && (
-              <Button
-                size="default"
-                className="w-full gap-2 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50"
-                onClick={capturePhoto}
-                data-testid="button-capture"
-              >
-                <Camera className="h-5 w-5" />
-                Capturar Foto
-              </Button>
-            )
-          )}
-        </div>
       </div>
 
-      <div className="w-full border-t border-white/10 bg-black/40 py-2 text-center">
+      <div className="w-full border-t border-white/10 bg-black/40 py-1.5 text-center">
         <p className="text-[10px] text-white/40 tracking-wide uppercase">⚽ Copa del Mundo 2026 ⚽</p>
       </div>
     </div>
@@ -701,7 +743,7 @@ export default function SingleFlowPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
+    <div className="relative h-[100dvh] w-full overflow-hidden">
       {/* Stadium photo base */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
@@ -710,52 +752,52 @@ export default function SingleFlowPage() {
       {/* Sky-to-grass gradient overlay matching flyer style */}
       <div className="fixed inset-0 stadium-overlay" />
 
-      <div className="relative z-10 flex min-h-screen flex-col">
+      <div className="relative z-10 flex h-full flex-col">
         {/* Header: trophy + Real de Palmas + Milenium in a single row */}
-        <header className="flex items-center justify-center gap-3 pt-4 pb-2 px-4 sm:pt-6 sm:gap-4">
+        <header className="flex shrink-0 items-center justify-center gap-2 pt-2 pb-1 px-3 sm:pt-3 sm:gap-3">
           <img
             src={trophyImage}
             alt="Copa del Mundial"
-            className="h-14 w-auto object-contain drop-shadow-2xl sm:h-16 md:h-20"
+            className="h-10 w-auto object-contain drop-shadow-2xl sm:h-12"
             data-testid="img-trophy"
           />
-          <div className="h-12 w-px bg-white/20 sm:h-14" />
+          <div className="h-8 w-px bg-white/20 sm:h-10" />
           <img
             src={realDePalmasLogo}
             alt="Real de Palmas Residencial"
-            className="h-12 w-auto object-contain drop-shadow-lg sm:h-16 md:h-20"
+            className="h-10 w-auto object-contain drop-shadow-lg sm:h-12"
             data-testid="img-real-de-palmas-logo"
           />
-          <div className="h-12 w-px bg-white/20 sm:h-14" />
+          <div className="h-8 w-px bg-white/20 sm:h-10" />
           <img
             src={mileniumLogo}
             alt="Milenium"
-            className="h-10 w-auto object-contain drop-shadow-lg sm:h-12 md:h-14"
+            className="h-8 w-auto object-contain drop-shadow-lg sm:h-10"
             data-testid="img-milenium-logo"
           />
         </header>
 
-        {/* Main title — Real de Palmas style two-line headline */}
-        <div className="relative z-10 flex flex-col items-center text-center px-4 pt-3 pb-4 sm:pt-4 sm:pb-5">
-          <p className="text-xs font-bold text-white/80 tracking-[0.25em] uppercase drop-shadow-md sm:text-sm">
+        {/* Main title */}
+        <div className="relative z-10 shrink-0 flex flex-col items-center text-center px-4 pt-1 pb-1">
+          <p className="text-[10px] font-bold text-white/80 tracking-[0.25em] uppercase drop-shadow-md">
             TU FOTO IDEAL ESTÁ A
           </p>
           <h1
-            className="text-3xl font-black uppercase leading-none tracking-tight stadium-headline-xl sm:text-4xl md:text-5xl"
+            className="text-2xl font-black uppercase leading-none tracking-tight stadium-headline-xl sm:text-3xl md:text-4xl"
             data-testid="text-headline"
           >
             UN GOL DE&nbsp;⚽&nbsp;DISTANCIA
           </h1>
         </div>
 
-        <main className="flex flex-1 flex-col items-center justify-center px-2 py-2 sm:px-4 sm:py-4 md:py-8">
-          {/* Card: transparent dark panel, no heavy opaque card */}
+        <main className="flex flex-1 min-h-0 flex-col items-center justify-center px-2 py-1 sm:px-4 sm:py-2">
+          {/* Card: transparent dark panel */}
           <div className="w-full max-w-sm overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-md shadow-2xl sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
             {renderStepContent()}
           </div>
         </main>
 
-        <footer className="py-2 text-center">
+        <footer className="shrink-0 py-1.5 text-center">
           <button
             onClick={() => navigate("/tus-imagenes")}
             className="text-[10px] text-white/15 transition-colors hover:text-white/35"
