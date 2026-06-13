@@ -73,35 +73,54 @@ function PromoStrip() {
       <div className="flex items-stretch divide-x divide-white/15 max-w-sm mx-auto">
         <div className="flex-1 flex flex-col items-center gap-1 px-1 py-2.5">
           <div className="promo-badge rounded-sm px-1.5 py-0.5 mb-0.5">
-            <span className="text-[8px] font-black text-white uppercase tracking-wider leading-none">PASO 1</span>
+            <span className="text-[11px] font-black text-white uppercase tracking-wider leading-none">PASO 1</span>
           </div>
           <span className="text-lg leading-none">⚽</span>
-          <span className="text-[9px] font-bold text-white uppercase text-center leading-tight tracking-wide">
+          <span className="text-[11px] font-bold text-white uppercase text-center leading-tight tracking-wide">
             ELIGE TU<br />EQUIPO
           </span>
         </div>
         <div className="flex-1 flex flex-col items-center gap-1 px-1 py-2.5">
           <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-sm px-1.5 py-0.5 mb-0.5 border border-green-400/30">
-            <span className="text-[8px] font-black text-white uppercase tracking-wider leading-none">PASO 2</span>
+            <span className="text-[11px] font-black text-white uppercase tracking-wider leading-none">PASO 2</span>
           </div>
           <span className="text-lg leading-none">📸</span>
-          <span className="text-[9px] font-bold text-green-400 uppercase text-center leading-tight tracking-wide">
+          <span className="text-[11px] font-bold text-green-400 uppercase text-center leading-tight tracking-wide">
             TÓMATE<br />LA FOTO
           </span>
         </div>
         <div className="flex-1 flex flex-col items-center gap-1 px-1 py-2.5">
           <div className="promo-badge rounded-sm px-1.5 py-0.5 mb-0.5">
-            <span className="text-[8px] font-black text-white uppercase tracking-wider leading-none">PASO 3</span>
+            <span className="text-[11px] font-black text-white uppercase tracking-wider leading-none">PASO 3</span>
           </div>
           <span className="text-lg leading-none">🏆</span>
-          <span className="text-[9px] font-bold text-white uppercase text-center leading-tight tracking-wide">
+          <span className="text-[11px] font-bold text-white uppercase text-center leading-tight tracking-wide">
             DESCARGA<br />TU IMAGEN
           </span>
         </div>
       </div>
-      <p className="text-center text-[9px] text-white/40 pb-1.5 tracking-wide">
+      <p className="text-center text-[11px] text-white/40 pb-1.5 tracking-wide">
         Tecnología de COHETE BRANDS
       </p>
+    </div>
+  );
+}
+
+const FLOW_STEPS_WITH_DOTS: FlowStep[] = ["team", "capture", "processing", "result"];
+
+function StepDots({ current }: { current: FlowStep }) {
+  if (!FLOW_STEPS_WITH_DOTS.includes(current)) return null;
+  const idx = FLOW_STEPS_WITH_DOTS.indexOf(current);
+  return (
+    <div className="flex items-center justify-center gap-1.5 pt-2 pb-0.5">
+      {FLOW_STEPS_WITH_DOTS.map((_, i) => (
+        <div
+          key={i}
+          className={`rounded-full transition-all duration-300 ${
+            i < idx ? "bg-green-500 w-4 h-1.5" : i === idx ? "bg-green-400 w-6 h-1.5" : "bg-white/20 w-1.5 h-1.5"
+          }`}
+        />
+      ))}
     </div>
   );
 }
@@ -332,17 +351,21 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
           <div
-            className={`relative w-full overflow-hidden rounded-md sm:rounded-lg sm:flex-1 ${isMobile ? "aspect-[3/4]" : "aspect-video"}`}
+            className="relative w-full overflow-hidden rounded-md sm:rounded-lg sm:flex-1 aspect-[3/4]"
             style={borderStyle}
             data-testid="card-camera-preview"
           >
             {capturedPreview ? (
-              <img src={capturedPreview} alt="Foto capturada" className="h-full w-full object-cover" data-testid="img-captured-preview" />
+              <img src={capturedPreview} alt="Foto capturada" className="h-full w-full object-contain bg-black" data-testid="img-captured-preview" />
             ) : hasPermission === false ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-black/60 p-4 text-center">
                 <AlertCircle className="h-8 w-8 text-red-400" />
                 <p className="text-xs font-semibold text-white/80">{error}</p>
-                <p className="text-[10px] text-white/50">Usa el botón de abajo para subir una foto</p>
+                <p className="text-[11px] text-white/50">Usa el botón de abajo para subir una foto</p>
+              </div>
+            ) : hasPermission === null ? (
+              <div className="flex h-full w-full items-center justify-center bg-black/60">
+                <Loader2 className="h-8 w-8 animate-spin text-white/50" />
               </div>
             ) : (
               <video
@@ -350,7 +373,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
                 autoPlay
                 playsInline
                 muted
-                className={`h-full w-full ${isMobile ? "object-contain bg-black" : "object-cover"} ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+                className={`h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
                 data-testid="video-camera"
               />
             )}
@@ -527,7 +550,7 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-function ResultContent({ onHome }: { onHome: () => void }) {
+function ResultContent({ onHome, onRetake }: { onHome: () => void; onRetake: () => void }) {
   const { selectedTeam, transformedImage, capturedImage, error } = useApp();
   const { toast } = useToast();
 
@@ -582,7 +605,7 @@ function ResultContent({ onHome }: { onHome: () => void }) {
         <AlertTriangle className="h-12 w-12 text-red-400" />
         <p className="text-sm text-white/60">{error || "Hubo un problema al procesar tu foto."}</p>
         <button
-          onClick={onHome}
+          onClick={onRetake}
           className="flex items-center gap-2 rounded-full bg-green-600 hover:bg-green-500 transition-colors px-5 py-2"
           data-testid="button-retry-home"
         >
@@ -626,13 +649,13 @@ function ResultContent({ onHome }: { onHome: () => void }) {
           <img
             src={displayImage!}
             alt="Retrato mundialista"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain bg-black"
             data-testid="img-result"
           />
         </div>
 
-        {/* QR panel */}
-        <div className="flex flex-col items-center justify-center gap-2 rounded-lg bg-black/50 border border-white/15 backdrop-blur-sm px-3 py-3 min-w-[90px]">
+        {/* QR panel — hidden on mobile, visible on sm+ */}
+        <div className="hidden sm:flex flex-col items-center justify-center gap-2 rounded-lg bg-black/50 border border-white/15 backdrop-blur-sm px-3 py-3 min-w-[90px]">
           <div className="rounded-lg bg-white p-2">
             <QRCode
               value={`${window.location.origin}/images`}
@@ -642,7 +665,7 @@ function ResultContent({ onHome }: { onHome: () => void }) {
               data-testid="img-qr-gallery"
             />
           </div>
-          <p className="text-[9px] font-bold text-white/70 text-center uppercase tracking-wide leading-tight">
+          <p className="text-[11px] font-bold text-white/70 text-center uppercase tracking-wide leading-tight">
             Escanea para ver<br />todas las fotos
           </p>
         </div>
@@ -672,7 +695,7 @@ function ResultContent({ onHome }: { onHome: () => void }) {
         {/* Secondary: retry + home */}
         <div className="flex gap-2">
           <button
-            onClick={onHome}
+            onClick={onRetake}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white/8 hover:bg-white/15 border border-white/15 transition-all px-3 py-2"
             data-testid="button-retry"
           >
@@ -696,9 +719,16 @@ function ResultContent({ onHome }: { onHome: () => void }) {
 
 export default function SingleFlowPage() {
   const [, navigate] = useLocation();
-  const { currentStep, goToNextStep, reset } = useApp();
+  const { currentStep, goToNextStep, reset, setCurrentStep, setCapturedImage, setTransformedImage, setError } = useApp();
 
   const handleHome = () => { reset(); };
+
+  const handleRetake = () => {
+    setCapturedImage(null);
+    setTransformedImage(null);
+    setError(null);
+    setCurrentStep("capture");
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -706,7 +736,7 @@ export default function SingleFlowPage() {
       case "team":     return <TeamContent onContinue={goToNextStep} />;
       case "capture":  return <CaptureContent onContinue={goToNextStep} />;
       case "processing": return <ProcessingContent onComplete={goToNextStep} />;
-      case "result":   return <ResultContent onHome={handleHome} />;
+      case "result":   return <ResultContent onHome={handleHome} onRetake={handleRetake} />;
       default:         return <IntroContent onContinue={goToNextStep} />;
     }
   };
@@ -762,6 +792,7 @@ export default function SingleFlowPage() {
         <main className="flex flex-1 min-h-0 flex-col items-center justify-center px-2 py-1 sm:px-4 sm:py-2">
           {/* Card: transparent dark panel */}
           <div className="w-full max-w-sm overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-md shadow-2xl sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
+            <StepDots current={currentStep} />
             {renderStepContent()}
           </div>
         </main>
