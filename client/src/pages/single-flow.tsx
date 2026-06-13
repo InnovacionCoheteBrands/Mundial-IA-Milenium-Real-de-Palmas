@@ -283,13 +283,29 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const targetRatio = 16 / 9;
+    const videoRatio = vw / vh;
+
+    let sx = 0, sy = 0, sw = vw, sh = vh;
+    if (videoRatio > targetRatio) {
+      sw = vh * targetRatio;
+      sx = (vw - sw) / 2;
+    } else {
+      sh = vw / targetRatio;
+      sy = (vh - sh) / 2;
+    }
+
+    canvas.width = Math.round(sw);
+    canvas.height = Math.round(sh);
+
     if (facingMode === "user") {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     setCapturedPreview(canvas.toDataURL("image/jpeg", 0.9));
   };
 
@@ -358,7 +374,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
             <img
               src={capturedPreview}
               alt="Foto capturada"
-              className="h-full w-full object-contain bg-black"
+              className="h-full w-full object-cover"
               data-testid="img-captured-preview"
             />
           ) : hasPermission === false ? (
