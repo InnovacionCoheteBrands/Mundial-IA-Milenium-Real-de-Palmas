@@ -18,7 +18,7 @@ import {
   Trophy,
   ImageIcon,
 } from "lucide-react";
-import { useApp } from "@/lib/app-context";
+import { useApp, type FlowStep } from "@/lib/app-context";
 import { TEAMS, teamInfo, type TeamId } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -143,7 +143,7 @@ function IntroContent({ onContinue }: { onContinue: () => void }) {
           ¡COMENZAR!
         </Button>
 
-        <p className="text-[10px] text-white/40 tracking-wide">
+        <p className="text-[11px] text-white/40 tracking-wide">
           Necesitamos acceso a tu cámara
         </p>
       </div>
@@ -160,7 +160,7 @@ function TeamContent({ onContinue }: { onContinue: () => void }) {
     <div className="flex flex-col gap-0">
       <div className="flex flex-col gap-3 px-3 pt-4 pb-3 sm:gap-4 sm:px-4 sm:pt-5">
         <div className="text-center">
-          <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
+          <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
             — Selecciona —
           </p>
           <h2 className="text-xl font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-2xl stadium-headline-accent">
@@ -197,7 +197,7 @@ function TeamContent({ onContinue }: { onContinue: () => void }) {
                     loading="lazy"
                   />
                 </div>
-                <span className={`text-[10px] font-semibold leading-tight sm:text-xs ${isSelected ? "text-green-300" : "text-white/80"}`}>
+                <span className={`text-[11px] font-semibold leading-tight sm:text-xs ${isSelected ? "text-green-300" : "text-white/80"}`}>
                   {info.name}
                 </span>
               </button>
@@ -218,7 +218,7 @@ function TeamContent({ onContinue }: { onContinue: () => void }) {
       </div>
 
       <div className="w-full border-t border-white/10 bg-black/40 py-2 text-center">
-        <p className="text-[10px] text-white/40 tracking-wide uppercase">⚽ Copa del Mundo 2026 ⚽</p>
+        <p className="text-[11px] text-white/40 tracking-wide uppercase">⚽ Copa del Mundo 2026 ⚽</p>
       </div>
     </div>
   );
@@ -338,20 +338,20 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     <div className="flex flex-col gap-0">
       <div className="flex flex-col gap-2 px-3 pt-3 pb-2 sm:px-4">
         <div className="text-center">
-          <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
+          <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
             — Captura —
           </p>
           <h2 className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-xl stadium-headline-accent">
             TU FOTO
           </h2>
-          <p className="text-[10px] text-white/50">
+          <p className="text-[11px] text-white/50">
             {isMobile ? "Toma o sube una foto" : "Usa la cámara o sube una foto"}
           </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
           <div
-            className="relative w-full overflow-hidden rounded-md sm:rounded-lg sm:flex-1 aspect-[3/4]"
+            className="relative w-full overflow-hidden rounded-md sm:rounded-lg sm:flex-1 aspect-[4/3]"
             style={borderStyle}
             data-testid="card-camera-preview"
           >
@@ -459,7 +459,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
       </div>
 
       <div className="w-full border-t border-white/10 bg-black/40 py-1.5 text-center">
-        <p className="text-[10px] text-white/40 tracking-wide uppercase">⚽ Copa del Mundo 2026 ⚽</p>
+        <p className="text-[11px] text-white/40 tracking-wide uppercase">⚽ Copa del Mundo 2026 ⚽</p>
       </div>
     </div>
   );
@@ -520,7 +520,7 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em]">— Procesando —</p>
+        <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em]">— Procesando —</p>
         <h2
           className="text-2xl font-black text-white uppercase tracking-tight drop-shadow-lg stadium-headline-accent sm:text-3xl"
           data-testid="text-processing-title"
@@ -544,7 +544,7 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
       </div>
 
       <div className="w-full border-t border-white/10 pt-4">
-        <p className="text-[10px] text-white/30 uppercase tracking-widest">⚽ Magia del Mundial ⚽</p>
+        <p className="text-[11px] text-white/30 uppercase tracking-widest">⚽ Magia del Mundial ⚽</p>
       </div>
     </div>
   );
@@ -621,12 +621,12 @@ function ResultContent({ onHome, onRetake }: { onHome: () => void; onRetake: () 
 
       {/* ── Title section ── */}
       <div className="px-4 pt-3 pb-2 text-center">
-        <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em]">— ¡Listo! —</p>
+        <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em]">— ¡Listo! —</p>
         <h2 className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg stadium-headline-accent" data-testid="text-result-title">
           Tu Retrato Mundialista
         </h2>
         {selectedTeam && (
-          <p className="text-[10px] text-white/60 mt-0.5 uppercase tracking-widest">
+          <p className="text-[11px] text-white/60 mt-0.5 uppercase tracking-widest">
             {teamInfo[selectedTeam].flag} Fan de {teamInfo[selectedTeam].name}
           </p>
         )}
@@ -778,7 +778,7 @@ export default function SingleFlowPage() {
 
         {/* Main title */}
         <div className="relative z-10 shrink-0 flex flex-col items-center text-center px-4 pt-1 pb-1">
-          <p className="text-[10px] font-bold text-white/80 tracking-[0.25em] uppercase drop-shadow-md">
+          <p className="text-[11px] font-bold text-white/80 tracking-[0.25em] uppercase drop-shadow-md">
             TU FOTO IDEAL ESTÁ A
           </p>
           <h1
@@ -800,7 +800,7 @@ export default function SingleFlowPage() {
         <footer className="shrink-0 py-1.5 text-center">
           <button
             onClick={() => navigate("/tus-imagenes")}
-            className="text-[10px] text-white/15 transition-colors hover:text-white/35"
+            className="text-[11px] text-white/15 transition-colors hover:text-white/35"
             data-testid="link-admin"
           >
             Admin
