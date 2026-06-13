@@ -377,7 +377,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               autoPlay
               playsInline
               muted
-              className={`h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+              className={`h-full w-full object-contain bg-black ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
               data-testid="video-camera"
             />
           )}
