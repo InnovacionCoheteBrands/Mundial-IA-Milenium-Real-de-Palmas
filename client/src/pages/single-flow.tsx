@@ -351,7 +351,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
         {/* Camera preview — landscape 4:3, capped height on small screens */}
         <div
           className="relative w-full overflow-hidden rounded-lg"
-          style={{ ...borderStyle, aspectRatio: "4/3", maxHeight: "55vh" }}
+          style={{ ...borderStyle, aspectRatio: "16/9", maxHeight: "55vh" }}
           data-testid="card-camera-preview"
         >
           {capturedPreview ? (
@@ -377,7 +377,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               autoPlay
               playsInline
               muted
-              className={`h-full w-full object-contain bg-black ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+              className={`h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
               data-testid="video-camera"
             />
           )}
