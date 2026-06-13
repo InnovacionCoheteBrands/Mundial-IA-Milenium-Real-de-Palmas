@@ -335,8 +335,8 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   };
 
   return (
-    <div className="flex flex-col gap-0">
-      <div className="flex flex-col gap-2 px-3 pt-3 pb-2 sm:px-4">
+    <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 flex flex-col gap-2 px-3 pt-3 pb-2 sm:px-4">
         <div className="text-center">
           <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
             — Captura —
@@ -349,9 +349,9 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
+        <div className="flex-1 min-h-0 flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
           <div
-            className="relative w-full overflow-hidden rounded-md sm:rounded-lg sm:flex-1 aspect-[4/3]"
+            className="relative w-full overflow-hidden rounded-md sm:rounded-lg sm:flex-1 flex-1 min-h-0"
             style={borderStyle}
             data-testid="card-camera-preview"
           >
@@ -791,7 +791,7 @@ export default function SingleFlowPage() {
 
         <main className="flex flex-1 min-h-0 flex-col items-center justify-center px-2 py-1 sm:px-4 sm:py-2">
           {/* Card: transparent dark panel */}
-          <div className="w-full max-w-sm overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-md shadow-2xl sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
+          <div className="w-full max-w-sm max-h-full flex flex-col overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-md shadow-2xl sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
             <StepDots current={currentStep} />
             {renderStepContent()}
           </div>
