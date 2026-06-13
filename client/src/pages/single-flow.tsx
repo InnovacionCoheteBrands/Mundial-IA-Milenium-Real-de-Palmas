@@ -335,12 +335,11 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col">
-      <div className="flex-1 min-h-0 flex flex-col gap-2 px-3 pt-3 pb-2 sm:px-4">
+    <div className="flex flex-col gap-0">
+      <div className="flex flex-col gap-2 px-3 pt-3 pb-2 sm:px-4">
+        {/* Title */}
         <div className="text-center">
-          <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
-            — Captura —
-          </p>
+          <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">— Captura —</p>
           <h2 className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-xl stadium-headline-accent">
             TU FOTO
           </h2>
@@ -349,111 +348,114 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
           </p>
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
-          <div
-            className="relative w-full overflow-hidden rounded-md sm:rounded-lg sm:flex-1 flex-1 min-h-0"
-            style={borderStyle}
-            data-testid="card-camera-preview"
-          >
-            {capturedPreview ? (
-              <img src={capturedPreview} alt="Foto capturada" className="h-full w-full object-contain bg-black" data-testid="img-captured-preview" />
-            ) : hasPermission === false ? (
-              <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-black/60 p-4 text-center">
-                <AlertCircle className="h-8 w-8 text-red-400" />
-                <p className="text-xs font-semibold text-white/80">{error}</p>
-                <p className="text-[11px] text-white/50">Usa el botón de abajo para subir una foto</p>
-              </div>
-            ) : hasPermission === null ? (
-              <div className="flex h-full w-full items-center justify-center bg-black/60">
-                <Loader2 className="h-8 w-8 animate-spin text-white/50" />
-              </div>
-            ) : (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className={`h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
-                data-testid="video-camera"
-              />
-            )}
+        {/* Camera preview — landscape 4:3, capped height on small screens */}
+        <div
+          className="relative w-full overflow-hidden rounded-lg"
+          style={{ ...borderStyle, aspectRatio: "4/3", maxHeight: "55vh" }}
+          data-testid="card-camera-preview"
+        >
+          {capturedPreview ? (
+            <img
+              src={capturedPreview}
+              alt="Foto capturada"
+              className="h-full w-full object-contain bg-black"
+              data-testid="img-captured-preview"
+            />
+          ) : hasPermission === false ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-black/60 p-4 text-center">
+              <AlertCircle className="h-8 w-8 text-red-400" />
+              <p className="text-xs font-semibold text-white/80">{error}</p>
+              <p className="text-[11px] text-white/50">Usa el botón de abajo para subir una foto</p>
+            </div>
+          ) : hasPermission === null ? (
+            <div className="flex h-full w-full items-center justify-center bg-black/60">
+              <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+            </div>
+          ) : (
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+              data-testid="video-camera"
+            />
+          )}
 
-            {hasPermission && !capturedPreview && (
+          {hasPermission && !capturedPreview && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2 bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
+              onClick={switchCamera}
+              data-testid="button-switch-camera"
+            >
+              <SwitchCamera className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* Buttons — always horizontal row below camera */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileUpload}
+          data-testid="input-file-upload"
+        />
+        {capturedPreview ? (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="default"
+              className="flex-1 gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20"
+              onClick={retakePhoto}
+              disabled={isCompressing}
+              data-testid="button-retake"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>Volver</span>
+            </Button>
+            <Button
+              size="default"
+              className="flex-1 gap-2 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50"
+              onClick={confirmPhoto}
+              disabled={isCompressing}
+              data-testid="button-confirm"
+            >
+              {isCompressing ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /><span>Preparando</span></>
+              ) : (
+                <><Sparkles className="h-4 w-4" /><span>¡Transformar!</span></>
+              )}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            {hasPermission && (
               <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-2 bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
-                onClick={switchCamera}
-                data-testid="button-switch-camera"
+                size="default"
+                className="flex-1 gap-2 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50"
+                onClick={capturePhoto}
+                data-testid="button-capture"
               >
-                <SwitchCamera className="h-4 w-4" />
+                <Camera className="h-4 w-4" />
+                <span>Capturar</span>
               </Button>
             )}
+            <Button
+              variant="outline"
+              size="default"
+              className={`gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 ${hasPermission ? "flex-1" : "w-full"}`}
+              onClick={() => fileInputRef.current?.click()}
+              data-testid="button-upload"
+            >
+              <ImageIcon className="h-4 w-4" />
+              <span>Subir foto</span>
+            </Button>
           </div>
-
-          <div className="flex gap-2 sm:w-36 sm:flex-col sm:justify-center">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileUpload}
-              data-testid="input-file-upload"
-            />
-            {capturedPreview ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="default"
-                  className="flex-1 gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 sm:w-full sm:flex-none"
-                  onClick={retakePhoto}
-                  disabled={isCompressing}
-                  data-testid="button-retake"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  <span>Volver</span>
-                </Button>
-                <Button
-                  size="default"
-                  className="flex-1 gap-1 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50 sm:w-full sm:flex-none"
-                  onClick={confirmPhoto}
-                  disabled={isCompressing}
-                  data-testid="button-confirm"
-                >
-                  {isCompressing ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" /><span className="text-xs">Preparando</span></>
-                  ) : (
-                    <><Sparkles className="h-4 w-4" /><span className="text-xs">¡Transformar!</span></>
-                  )}
-                </Button>
-              </>
-            ) : (
-              <>
-                {hasPermission && (
-                  <Button
-                    size="default"
-                    className="flex-1 gap-2 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50 sm:w-full sm:flex-none"
-                    onClick={capturePhoto}
-                    data-testid="button-capture"
-                  >
-                    <Camera className="h-4 w-4" />
-                    <span className="text-xs">Capturar</span>
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  size="default"
-                  className={`gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 sm:w-full sm:flex-none ${hasPermission ? "flex-1" : "w-full"}`}
-                  onClick={() => fileInputRef.current?.click()}
-                  data-testid="button-upload"
-                >
-                  <ImageIcon className="h-4 w-4" />
-                  <span className="text-xs">Subir foto</span>
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
+        )}
 
         <canvas ref={canvasRef} className="hidden" />
       </div>
