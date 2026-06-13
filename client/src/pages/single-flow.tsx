@@ -301,10 +301,6 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     canvas.width = Math.round(sw);
     canvas.height = Math.round(sh);
 
-    if (facingMode === "user") {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-    }
     ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     setCapturedPreview(canvas.toDataURL("image/jpeg", 0.9));
   };
@@ -393,7 +389,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               autoPlay
               playsInline
               muted
-              className={`absolute inset-0 h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+              className="absolute inset-0 h-full w-full object-cover"
               data-testid="video-camera"
             />
           )}
