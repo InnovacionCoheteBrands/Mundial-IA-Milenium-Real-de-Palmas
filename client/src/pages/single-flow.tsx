@@ -374,17 +374,17 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
             <img
               src={capturedPreview}
               alt="Foto capturada"
-              className="h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
               data-testid="img-captured-preview"
             />
           ) : hasPermission === false ? (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-black/60 p-4 text-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 p-4 text-center">
               <AlertCircle className="h-8 w-8 text-red-400" />
               <p className="text-xs font-semibold text-white/80">{error}</p>
               <p className="text-[11px] text-white/50">Usa el botón de abajo para subir una foto</p>
             </div>
           ) : hasPermission === null ? (
-            <div className="flex h-full w-full items-center justify-center bg-black/60">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60">
               <Loader2 className="h-8 w-8 animate-spin text-white/50" />
             </div>
           ) : (
@@ -393,7 +393,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               autoPlay
               playsInline
               muted
-              className={`h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+              className={`absolute inset-0 h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
               data-testid="video-camera"
             />
           )}
