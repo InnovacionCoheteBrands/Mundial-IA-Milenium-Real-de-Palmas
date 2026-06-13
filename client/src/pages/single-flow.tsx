@@ -389,7 +389,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 h-full w-full object-cover"
+              className={`absolute inset-0 h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
               data-testid="video-camera"
             />
           )}
