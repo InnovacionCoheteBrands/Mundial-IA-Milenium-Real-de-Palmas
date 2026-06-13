@@ -40,6 +40,30 @@ const teamFlags: Record<TeamId, string> = {
 
 const MAX_IMAGE_WIDTH = 1200;
 const JPEG_QUALITY = 0.85;
+const CAMERA_ASPECT_RATIO = 16 / 9;
+const CAMERA_ASPECT_RATIO_CSS = "16 / 9";
+
+function getCenteredCropRect(sourceWidth: number, sourceHeight: number, targetRatio = CAMERA_ASPECT_RATIO) {
+  const sourceRatio = sourceWidth / sourceHeight;
+
+  if (sourceRatio > targetRatio) {
+    const width = sourceHeight * targetRatio;
+    return {
+      sx: (sourceWidth - width) / 2,
+      sy: 0,
+      sw: width,
+      sh: sourceHeight,
+    };
+  }
+
+  const height = sourceWidth / targetRatio;
+  return {
+    sx: 0,
+    sy: (sourceHeight - height) / 2,
+    sw: sourceWidth,
+    sh: height,
+  };
+}
 
 function compressImage(dataUrl: string): Promise<string> {
   return new Promise((resolve) => {
@@ -230,55 +254,130 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const cameraRequestRef = useRef(0);
 
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [capturedPreview, setCapturedPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [cameraSession, setCameraSession] = useState(0);
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const teamColors = selectedTeam ? teamInfo[selectedTeam].colors : null;
 
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
+  const stopStream = useCallback((mediaStream: MediaStream | null) => {
+    mediaStream?.getTracks().forEach((track) => track.stop());
   }, []);
 
+  const stopCamera = useCallback(() => {
+    setIsCameraReady(false);
+
+    if (streamRef.current) {
+      stopStream(streamRef.current);
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.srcObject = null;
+    }
+  }, [stopStream]);
+
   const startCamera = useCallback(async () => {
+    const requestId = cameraRequestRef.current + 1;
+    cameraRequestRef.current = requestId;
+
     try {
       stopCamera();
+      setHasPermission(null);
+      setError(null);
+
       let mediaStream: MediaStream;
       try {
         mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: false });
       } catch {
         mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
+
+      if (requestId !== cameraRequestRef.current) {
+        stopStream(mediaStream);
+        return;
+      }
+
       streamRef.current = mediaStream;
       setHasPermission(true);
-      setError(null);
-      if (videoRef.current) videoRef.current.srcObject = mediaStream;
+      setCameraSession((prev) => prev + 1);
     } catch (err) {
+      if (requestId !== cameraRequestRef.current) return;
       console.error("Camera error:", err);
       setHasPermission(false);
       setError("No se pudo acceder a la cámara.");
     }
-  }, [facingMode, stopCamera]);
+  }, [facingMode, stopCamera, stopStream]);
 
   useEffect(() => {
     startCamera();
-    return () => { stopCamera(); };
+    return () => {
+      cameraRequestRef.current += 1;
+      stopCamera();
+    };
   }, [startCamera, stopCamera]);
+
+  useEffect(() => {
+    if (hasPermission !== true || capturedPreview || !streamRef.current || !videoRef.current) return;
+
+    const video = videoRef.current;
+    const activeStream = streamRef.current;
+    const activeRequestId = cameraRequestRef.current;
+    let cancelled = false;
+
+    const markVideoReady = async () => {
+      try {
+        await video.play();
+      } catch {
+        // Some browsers settle autoplay after metadata is already available.
+      }
+
+      if (cancelled) return;
+      if (cameraRequestRef.current !== activeRequestId) return;
+      if (streamRef.current !== activeStream) return;
+      if (video.videoWidth <= 0 || video.videoHeight <= 0) return;
+
+      setIsCameraReady(true);
+    };
+
+    setIsCameraReady(false);
+
+    if (video.srcObject !== activeStream) {
+      video.srcObject = activeStream;
+    }
+
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA && video.videoWidth > 0 && video.videoHeight > 0) {
+      void markVideoReady();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const handleLoadedMetadata = () => {
+      void markVideoReady();
+    };
+
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+
+    return () => {
+      cancelled = true;
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+    };
+  }, [cameraSession, capturedPreview, hasPermission]);
 
   const switchCamera = () => setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
 
   const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current || !isCameraReady) return;
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -286,17 +385,9 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
-    const targetRatio = 16 / 9;
-    const videoRatio = vw / vh;
+    if (vw <= 0 || vh <= 0) return;
 
-    let sx = 0, sy = 0, sw = vw, sh = vh;
-    if (videoRatio > targetRatio) {
-      sw = vh * targetRatio;
-      sx = (vw - sw) / 2;
-    } else {
-      sh = vw / targetRatio;
-      sy = (vh - sh) / 2;
-    }
+    const { sx, sy, sw, sh } = getCenteredCropRect(vw, vh);
 
     canvas.width = Math.round(sw);
     canvas.height = Math.round(sh);
@@ -327,6 +418,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = (ev) => {
       const result = ev.target?.result as string;
@@ -360,17 +452,17 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
           </p>
         </div>
 
-        {/* Camera preview — landscape 4:3, capped height on small screens */}
+        {/* Camera preview */}
         <div
           className="relative w-full overflow-hidden rounded-lg"
-          style={{ ...borderStyle, aspectRatio: "16/9", maxHeight: "55vh" }}
+          style={{ ...borderStyle, aspectRatio: CAMERA_ASPECT_RATIO_CSS, maxHeight: "55vh" }}
           data-testid="card-camera-preview"
         >
           {capturedPreview ? (
             <img
               src={capturedPreview}
               alt="Foto capturada"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover object-center"
               data-testid="img-captured-preview"
             />
           ) : hasPermission === false ? (
@@ -379,19 +471,22 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               <p className="text-xs font-semibold text-white/80">{error}</p>
               <p className="text-[11px] text-white/50">Usa el botón de abajo para subir una foto</p>
             </div>
-          ) : hasPermission === null ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-              <Loader2 className="h-8 w-8 animate-spin text-white/50" />
-            </div>
           ) : (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className={`absolute inset-0 h-full w-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
-              data-testid="video-camera"
-            />
+            <>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-200 ${isCameraReady ? "opacity-100" : "opacity-0"}`}
+                data-testid="video-camera"
+              />
+              {!isCameraReady && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                  <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+                </div>
+              )}
+            </>
           )}
 
           {hasPermission && !capturedPreview && (
@@ -400,6 +495,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               size="icon"
               className="absolute right-2 top-2 bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
               onClick={switchCamera}
+              disabled={hasPermission !== true}
               data-testid="button-switch-camera"
             >
               <SwitchCamera className="h-4 w-4" />
@@ -407,7 +503,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
           )}
         </div>
 
-        {/* Buttons — always horizontal row below camera */}
+        {/* Buttons */}
         <input
           ref={fileInputRef}
           type="file"
@@ -450,6 +546,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
                 size="default"
                 className="flex-1 gap-2 bg-gradient-to-r from-green-600 to-green-500 font-black text-white uppercase tracking-wider shadow-lg shadow-green-900/50 border border-green-400/50"
                 onClick={capturePhoto}
+                disabled={!isCameraReady}
                 data-testid="button-capture"
               >
                 <Camera className="h-4 w-4" />
@@ -478,7 +575,6 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     </div>
   );
 }
-
 function ProcessingContent({ onComplete }: { onComplete: () => void }) {
   const { selectedTeam, capturedImage, setTransformedImage, setError } = useApp();
   const hasStartedRef = useRef(false);
