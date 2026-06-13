@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 
 const WATERMARK_PATH = path.join(process.cwd(), "attached_assets", "logo_milenium__1767829210784.png");
+const WATERMARK_BUFFER: Buffer | null = fs.existsSync(WATERMARK_PATH) ? fs.readFileSync(WATERMARK_PATH) : null;
 
 async function addWatermarkToImage(imageBase64: string): Promise<string> {
   try {
@@ -22,7 +23,8 @@ async function addWatermarkToImage(imageBase64: string): Promise<string> {
       return imageBase64;
     }
 
-    const logoBuffer = fs.readFileSync(WATERMARK_PATH);
+    if (!WATERMARK_BUFFER) return imageBase64;
+    const logoBuffer = WATERMARK_BUFFER;
     const logoMaxWidth = Math.floor(metadata.width * 0.2);
     const logoMaxHeight = Math.floor(metadata.height * 0.15);
     
@@ -56,21 +58,19 @@ async function addWatermarkToImage(imageBase64: string): Promise<string> {
   }
 }
 
-function getAIClient() {
+let _aiClient: GoogleGenAI | null = null;
+function getAIClient(): GoogleGenAI {
+  if (_aiClient) return _aiClient;
   const apiKey = process.env.AI_INTEGRATIONS_GEMINI_API_KEY;
   const baseUrl = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
-  
   if (!apiKey || !baseUrl) {
     throw new Error("AI integration not configured. Please ensure Gemini AI integration is set up.");
   }
-  
-  return new GoogleGenAI({
+  _aiClient = new GoogleGenAI({
     apiKey,
-    httpOptions: {
-      apiVersion: "",
-      baseUrl,
-    },
+    httpOptions: { apiVersion: "", baseUrl },
   });
+  return _aiClient;
 }
 
 function getJerseyDescription(team: TeamId): string {

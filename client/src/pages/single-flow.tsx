@@ -38,8 +38,8 @@ const teamFlags: Record<TeamId, string> = {
   portugal: "https://flagcdn.com/w80/pt.png",
 };
 
-const MAX_IMAGE_WIDTH = 800;
-const JPEG_QUALITY = 0.5;
+const MAX_IMAGE_WIDTH = 1200;
+const JPEG_QUALITY = 0.85;
 
 function compressImage(dataUrl: string): Promise<string> {
   return new Promise((resolve) => {
@@ -256,10 +256,6 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     return () => { stopCamera(); };
   }, [startCamera, stopCamera]);
 
-  useEffect(() => {
-    if (hasPermission) startCamera();
-  }, [facingMode, hasPermission, startCamera]);
-
   const switchCamera = () => setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
 
   const capturePhoto = () => {
@@ -377,7 +373,6 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="user"
               className="hidden"
               onChange={handleFileUpload}
               data-testid="input-file-upload"
@@ -701,14 +696,7 @@ function ResultContent({ onHome }: { onHome: () => void }) {
 
 export default function SingleFlowPage() {
   const [, navigate] = useLocation();
-  const { currentStep, setCurrentStep, goToNextStep, reset, setCapturedImage, setTransformedImage, setError } = useApp();
-
-  const handleRetry = () => {
-    setCapturedImage(null);
-    setTransformedImage(null);
-    setError(null);
-    setCurrentStep("capture");
-  };
+  const { currentStep, goToNextStep, reset } = useApp();
 
   const handleHome = () => { reset(); };
 
