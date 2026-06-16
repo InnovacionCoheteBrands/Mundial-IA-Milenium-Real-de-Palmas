@@ -35,7 +35,7 @@ export default function AdminGallery() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-lg font-semibold md:text-xl" data-testid="text-page-title">
-          Galería de Administrador
+          {"Galer\u00eda de Administrador"}
         </h1>
       </header>
 
@@ -50,10 +50,10 @@ export default function AdminGallery() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ImageIcon className="mb-4 h-16 w-16 text-muted-foreground/50" />
             <h2 className="mb-2 text-xl font-semibold" data-testid="text-empty-state">
-              Sin transformaciones aún
+              {"Sin transformaciones a\u00fan"}
             </h2>
             <p className="text-muted-foreground">
-              Las transformaciones realizadas aparecerán aquí
+              {"Las transformaciones realizadas aparecer\u00e1n aqu\u00ed"}
             </p>
           </div>
         ) : (
@@ -75,7 +75,7 @@ export default function AdminGallery() {
                   >
                     <img
                       src={transformation.transformedImageUrl}
-                      alt={`Transformación ${transformation.id}`}
+                      alt={`Transformaci\u00f3n ${transformation.id}`}
                       className="h-full w-full object-cover"
                       loading="lazy"
                     />
