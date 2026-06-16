@@ -40,7 +40,12 @@ const teamFlags: Record<TeamId, string> = {
 
 const MAX_IMAGE_WIDTH = 1200;
 const JPEG_QUALITY = 0.85;
-const CAMERA_ASPECT_RATIO_CSS = "16 / 9";
+const CAMERA_ASPECT_RATIO = 16 / 9;
+
+function getAspectRatio(width: number, height: number) {
+  if (width <= 0 || height <= 0) return CAMERA_ASPECT_RATIO;
+  return width / height;
+}
 
 function compressImage(dataUrl: string): Promise<string> {
   return new Promise((resolve) => {
@@ -162,7 +167,7 @@ function TeamContent({ onContinue }: { onContinue: () => void }) {
       <div className="flex flex-col gap-3 px-3 pt-4 pb-3 sm:gap-4 sm:px-4 sm:pt-5">
         <div className="text-center">
           <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
-            â€” Selecciona â€”
+            â€” Selecciona â€”—
           </p>
           <h2 className="text-xl font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-2xl stadium-headline-accent">
             TU EQUIPO
@@ -240,6 +245,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [cameraSession, setCameraSession] = useState(0);
+  const [previewFrameAspectRatio, setPreviewFrameAspectRatio] = useState(CAMERA_ASPECT_RATIO);
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const shouldCorrectUserCameraMirror = facingMode === "user";
@@ -323,6 +329,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
       if (streamRef.current !== activeStream) return;
       if (video.videoWidth <= 0 || video.videoHeight <= 0) return;
 
+      setPreviewFrameAspectRatio(getAspectRatio(video.videoWidth, video.videoHeight));
       setIsCameraReady(true);
     };
 
@@ -365,6 +372,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     const vh = video.videoHeight;
     if (vw <= 0 || vh <= 0) return;
 
+    setPreviewFrameAspectRatio(getAspectRatio(vw, vh));
     canvas.width = vw;
     canvas.height = vh;
 
@@ -408,6 +416,11 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     reader.onload = (ev) => {
       const result = ev.target?.result as string;
       if (result) {
+        const img = new Image();
+        img.onload = () => {
+          setPreviewFrameAspectRatio(getAspectRatio(img.width, img.height));
+        };
+        img.src = result;
         stopCamera();
         setCapturedPreview(result);
       }
@@ -440,7 +453,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
         {/* Camera preview */}
         <div
           className="relative w-full overflow-hidden rounded-lg bg-black"
-          style={{ ...borderStyle, aspectRatio: CAMERA_ASPECT_RATIO_CSS, maxHeight: "55vh" }}
+          style={{ ...borderStyle, aspectRatio: previewFrameAspectRatio, maxHeight: "55vh" }}
           data-testid="card-camera-preview"
         >
           {capturedPreview ? (
@@ -521,7 +534,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               {isCompressing ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /><span>Preparando</span></>
               ) : (
-                <><Sparkles className="h-4 w-4" /><span>Â¡Transformar!</span></>
+                <><Sparkles className="h-4 w-4" /><span>&iexcl;Transformar!</span></>
               )}
             </Button>
           </div>
