@@ -40,30 +40,7 @@ const teamFlags: Record<TeamId, string> = {
 
 const MAX_IMAGE_WIDTH = 1200;
 const JPEG_QUALITY = 0.85;
-const CAMERA_ASPECT_RATIO = 16 / 9;
 const CAMERA_ASPECT_RATIO_CSS = "16 / 9";
-
-function getCenteredCropRect(sourceWidth: number, sourceHeight: number, targetRatio = CAMERA_ASPECT_RATIO) {
-  const sourceRatio = sourceWidth / sourceHeight;
-
-  if (sourceRatio > targetRatio) {
-    const width = sourceHeight * targetRatio;
-    return {
-      sx: (sourceWidth - width) / 2,
-      sy: 0,
-      sw: width,
-      sh: sourceHeight,
-    };
-  }
-
-  const height = sourceWidth / targetRatio;
-  return {
-    sx: 0,
-    sy: (sourceHeight - height) / 2,
-    sw: sourceWidth,
-    sh: height,
-  };
-}
 
 function compressImage(dataUrl: string): Promise<string> {
   return new Promise((resolve) => {
@@ -99,7 +76,7 @@ function PromoStrip() {
           <div className="promo-badge rounded-sm px-1.5 py-0.5 mb-0.5">
             <span className="text-[11px] font-black text-white uppercase tracking-wider leading-none">PASO 1</span>
           </div>
-          <span className="text-lg leading-none">⚽</span>
+          <span className="text-lg leading-none">âš½</span>
           <span className="text-[11px] font-bold text-white uppercase text-center leading-tight tracking-wide">
             ELIGE TU<br />EQUIPO
           </span>
@@ -108,23 +85,23 @@ function PromoStrip() {
           <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-sm px-1.5 py-0.5 mb-0.5 border border-green-400/30">
             <span className="text-[11px] font-black text-white uppercase tracking-wider leading-none">PASO 2</span>
           </div>
-          <span className="text-lg leading-none">📸</span>
+          <span className="text-lg leading-none">ðŸ“¸</span>
           <span className="text-[11px] font-bold text-green-400 uppercase text-center leading-tight tracking-wide">
-            TÓMATE<br />LA FOTO
+            TÃ“MATE<br />LA FOTO
           </span>
         </div>
         <div className="flex-1 flex flex-col items-center gap-1 px-1 py-2.5">
           <div className="promo-badge rounded-sm px-1.5 py-0.5 mb-0.5">
             <span className="text-[11px] font-black text-white uppercase tracking-wider leading-none">PASO 3</span>
           </div>
-          <span className="text-lg leading-none">🏆</span>
+          <span className="text-lg leading-none">ðŸ†</span>
           <span className="text-[11px] font-bold text-white uppercase text-center leading-tight tracking-wide">
             DESCARGA<br />TU IMAGEN
           </span>
         </div>
       </div>
       <p className="text-center text-[11px] text-white/40 pb-1.5 tracking-wide">
-        Tecnología de COHETE BRANDS
+        TecnologÃ­a de COHETE BRANDS
       </p>
     </div>
   );
@@ -154,7 +131,7 @@ function IntroContent({ onContinue }: { onContinue: () => void }) {
     <div className="flex flex-col items-center gap-0">
       <div className="flex flex-col items-center gap-3 px-4 pt-5 pb-4 text-center">
         <p className="text-xs text-white/70 font-semibold tracking-[0.2em] uppercase drop-shadow">
-          Activa tu cámara para comenzar
+          Activa tu cÃ¡mara para comenzar
         </p>
 
         <Button
@@ -164,11 +141,11 @@ function IntroContent({ onContinue }: { onContinue: () => void }) {
           data-testid="button-comenzar"
         >
           <Camera className="h-5 w-5" />
-          ¡COMENZAR!
+          Â¡COMENZAR!
         </Button>
 
         <p className="text-[11px] text-white/40 tracking-wide">
-          Necesitamos acceso a tu cámara
+          Necesitamos acceso a tu cÃ¡mara
         </p>
       </div>
 
@@ -185,7 +162,7 @@ function TeamContent({ onContinue }: { onContinue: () => void }) {
       <div className="flex flex-col gap-3 px-3 pt-4 pb-3 sm:gap-4 sm:px-4 sm:pt-5">
         <div className="text-center">
           <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
-            — Selecciona —
+            â€” Selecciona â€”
           </p>
           <h2 className="text-xl font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-2xl stadium-headline-accent">
             TU EQUIPO
@@ -242,7 +219,7 @@ function TeamContent({ onContinue }: { onContinue: () => void }) {
       </div>
 
       <div className="w-full border-t border-white/10 bg-black/40 py-2 text-center">
-        <p className="text-[11px] text-white/40 tracking-wide uppercase">⚽ Copa del Mundo 2026 ⚽</p>
+        <p className="text-[11px] text-white/40 tracking-wide uppercase">âš½ Copa del Mundo 2026 âš½</p>
       </div>
     </div>
   );
@@ -265,6 +242,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const [cameraSession, setCameraSession] = useState(0);
 
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const shouldCorrectUserCameraMirror = facingMode === "user";
   const teamColors = selectedTeam ? teamInfo[selectedTeam].colors : null;
 
   const stopStream = useCallback((mediaStream: MediaStream | null) => {
@@ -313,7 +291,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
       if (requestId !== cameraRequestRef.current) return;
       console.error("Camera error:", err);
       setHasPermission(false);
-      setError("No se pudo acceder a la cámara.");
+      setError("No se pudo acceder a la cÃ¡mara.");
     }
   }, [facingMode, stopCamera, stopStream]);
 
@@ -387,12 +365,19 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     const vh = video.videoHeight;
     if (vw <= 0 || vh <= 0) return;
 
-    const { sx, sy, sw, sh } = getCenteredCropRect(vw, vh);
+    canvas.width = vw;
+    canvas.height = vh;
 
-    canvas.width = Math.round(sw);
-    canvas.height = Math.round(sh);
+    if (shouldCorrectUserCameraMirror) {
+      ctx.save();
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
 
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     setCapturedPreview(canvas.toDataURL("image/jpeg", 0.9));
   };
 
@@ -443,18 +428,18 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
       <div className="flex flex-col gap-2 px-3 pt-3 pb-2 sm:px-4">
         {/* Title */}
         <div className="text-center">
-          <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">— Captura —</p>
+          <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">â€” Captura â€”</p>
           <h2 className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-xl stadium-headline-accent">
             TU FOTO
           </h2>
           <p className="text-[11px] text-white/50">
-            {isMobile ? "Toma o sube una foto" : "Usa la cámara o sube una foto"}
+            {isMobile ? "Toma o sube una foto" : "Usa la cÃ¡mara o sube una foto"}
           </p>
         </div>
 
         {/* Camera preview */}
         <div
-          className="relative w-full overflow-hidden rounded-lg"
+          className="relative w-full overflow-hidden rounded-lg bg-black"
           style={{ ...borderStyle, aspectRatio: CAMERA_ASPECT_RATIO_CSS, maxHeight: "55vh" }}
           data-testid="card-camera-preview"
         >
@@ -462,14 +447,14 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
             <img
               src={capturedPreview}
               alt="Foto capturada"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 h-full w-full object-contain object-center"
               data-testid="img-captured-preview"
             />
           ) : hasPermission === false ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 p-4 text-center">
               <AlertCircle className="h-8 w-8 text-red-400" />
               <p className="text-xs font-semibold text-white/80">{error}</p>
-              <p className="text-[11px] text-white/50">Usa el botón de abajo para subir una foto</p>
+              <p className="text-[11px] text-white/50">Usa el botÃ³n de abajo para subir una foto</p>
             </div>
           ) : (
             <>
@@ -478,7 +463,8 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
                 autoPlay
                 playsInline
                 muted
-                className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-200 ${isCameraReady ? "opacity-100" : "opacity-0"}`}
+                className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-200 ${isCameraReady ? "opacity-100" : "opacity-0"}`}
+                style={shouldCorrectUserCameraMirror ? { transform: "scaleX(-1)" } : undefined}
                 data-testid="video-camera"
               />
               {!isCameraReady && (
@@ -535,7 +521,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
               {isCompressing ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /><span>Preparando</span></>
               ) : (
-                <><Sparkles className="h-4 w-4" /><span>¡Transformar!</span></>
+                <><Sparkles className="h-4 w-4" /><span>Â¡Transformar!</span></>
               )}
             </Button>
           </div>
@@ -570,7 +556,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
       </div>
 
       <div className="w-full border-t border-white/10 bg-black/40 py-1.5 text-center">
-        <p className="text-[11px] text-white/40 tracking-wide uppercase">⚽ Copa del Mundo 2026 ⚽</p>
+        <p className="text-[11px] text-white/40 tracking-wide uppercase">âš½ Copa del Mundo 2026 âš½</p>
       </div>
     </div>
   );
@@ -593,7 +579,7 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
         setTransformedImage(data.transformedImage);
         setError(null);
       } else {
-        throw new Error("No se recibió la imagen transformada");
+        throw new Error("No se recibiÃ³ la imagen transformada");
       }
     } catch (error) {
       console.error("Error processing image:", error);
@@ -630,7 +616,7 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em]">— Procesando —</p>
+        <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em]">â€” Procesando â€”</p>
         <h2
           className="text-2xl font-black text-white uppercase tracking-tight drop-shadow-lg stadium-headline-accent sm:text-3xl"
           data-testid="text-processing-title"
@@ -639,7 +625,7 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
         </h2>
         <p className="text-sm text-white/60" data-testid="text-processing-subtitle">
           Creando tu retrato mundialista
-          {selectedTeam && ` de ${teamInfo[selectedTeam].name}`}…
+          {selectedTeam && ` de ${teamInfo[selectedTeam].name}`}â€¦
         </p>
       </div>
 
@@ -654,7 +640,7 @@ function ProcessingContent({ onComplete }: { onComplete: () => void }) {
       </div>
 
       <div className="w-full border-t border-white/10 pt-4">
-        <p className="text-[11px] text-white/30 uppercase tracking-widest">⚽ Magia del Mundial ⚽</p>
+        <p className="text-[11px] text-white/30 uppercase tracking-widest">âš½ Magia del Mundial âš½</p>
       </div>
     </div>
   );
@@ -729,9 +715,9 @@ function ResultContent({ onHome, onRetake }: { onHome: () => void; onRetake: () 
   return (
     <div className="flex flex-col gap-0" data-testid="card-result">
 
-      {/* ── Title section ── */}
+      {/* â”€â”€ Title section â”€â”€ */}
       <div className="px-4 pt-3 pb-2 text-center">
-        <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em]">— ¡Listo! —</p>
+        <p className="text-[11px] font-bold text-green-400 uppercase tracking-[0.25em]">â€” Â¡Listo! â€”</p>
         <h2 className="text-lg font-black text-white uppercase tracking-tight drop-shadow-lg stadium-headline-accent" data-testid="text-result-title">
           Tu Retrato Mundialista
         </h2>
@@ -742,10 +728,10 @@ function ResultContent({ onHome, onRetake }: { onHome: () => void; onRetake: () 
         )}
       </div>
 
-      {/* ── Image + QR row ── */}
+      {/* â”€â”€ Image + QR row â”€â”€ */}
       <div className="flex flex-row items-stretch gap-3 px-3 pb-3">
 
-        {/* Image — guaranteed 16:9 from server */}
+        {/* Image â€” guaranteed 16:9 from server */}
         <div
           className="relative flex-1 min-w-0 aspect-video overflow-hidden rounded-lg"
           style={{
@@ -764,7 +750,7 @@ function ResultContent({ onHome, onRetake }: { onHome: () => void; onRetake: () 
           />
         </div>
 
-        {/* QR panel — hidden on mobile, visible on sm+ */}
+        {/* QR panel â€” hidden on mobile, visible on sm+ */}
         <div className="hidden sm:flex flex-col items-center justify-center gap-2 rounded-lg bg-black/50 border border-white/15 backdrop-blur-sm px-3 py-3 min-w-[90px]">
           <div className="rounded-lg bg-white p-2">
             <QRCode
@@ -782,9 +768,9 @@ function ResultContent({ onHome, onRetake }: { onHome: () => void; onRetake: () 
 
       </div>
 
-      {/* ── Action buttons ── */}
+      {/* â”€â”€ Action buttons â”€â”€ */}
       <div className="flex flex-col gap-2 px-3 pb-3">
-        {/* Download — primary */}
+        {/* Download â€” primary */}
         <div className="flex gap-2">
           <button
             onClick={handleDownload}
@@ -889,13 +875,13 @@ export default function SingleFlowPage() {
         {/* Main title */}
         <div className="relative z-10 shrink-0 flex flex-col items-center text-center px-4 pt-1 pb-1">
           <p className="text-[11px] font-bold text-white/80 tracking-[0.25em] uppercase drop-shadow-md">
-            TU FOTO IDEAL ESTÁ A
+            TU FOTO IDEAL ESTÃ A
           </p>
           <h1
             className="text-2xl font-black uppercase leading-none tracking-tight stadium-headline-xl sm:text-3xl md:text-4xl"
             data-testid="text-headline"
           >
-            UN GOL DE&nbsp;⚽&nbsp;DISTANCIA
+            UN GOL DE&nbsp;âš½&nbsp;DISTANCIA
           </h1>
         </div>
 
