@@ -7,47 +7,139 @@ import sharp from "sharp";
 import path from "path";
 import fs from "fs";
 
-const WATERMARK_PATH = path.join(process.cwd(), "attached_assets", "logo_milenium__1767829210784.png");
-const WATERMARK_BUFFER: Buffer | null = fs.existsSync(WATERMARK_PATH) ? fs.readFileSync(WATERMARK_PATH) : null;
+type ResultLogoAsset = {
+  key: "trophy" | "realDePalmas" | "milenium";
+  buffer: Buffer;
+  targetHeightRatio: number;
+  maxWidthRatio: number;
+};
+
+function loadLogoAsset(
+  key: ResultLogoAsset["key"],
+  fileName: string,
+  targetHeightRatio: number,
+  maxWidthRatio: number,
+): ResultLogoAsset | null {
+  const assetPath = path.join(process.cwd(), "attached_assets", fileName);
+  if (!fs.existsSync(assetPath)) {
+    console.warn(`Result logo asset missing: ${assetPath}`);
+    return null;
+  }
+
+  return {
+    key,
+    buffer: fs.readFileSync(assetPath),
+    targetHeightRatio,
+    maxWidthRatio,
+  };
+}
+
+const RESULT_LOGO_ASSETS: ResultLogoAsset[] = [
+  loadLogoAsset("trophy", "ChatGPT_Image_6_ene_2026,_15_32_44_1767829210783.png", 0.12, 0.18),
+  loadLogoAsset("realDePalmas", "image_1781283435018.png", 0.12, 0.2),
+  loadLogoAsset("milenium", "logo_milenium__1767829210784.png", 0.1, 0.18),
+].filter((asset): asset is ResultLogoAsset => asset !== null);
 
 async function addWatermarkToImage(imageBase64: string): Promise<string> {
   try {
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const imageBuffer = Buffer.from(base64Data, "base64");
-    
+
     const mainImage = sharp(imageBuffer);
     const metadata = await mainImage.metadata();
-    
+
     if (!metadata.width || !metadata.height) {
       console.log("Could not get image metadata, returning original");
       return imageBase64;
     }
 
-    if (!WATERMARK_BUFFER) return imageBase64;
-    const logoBuffer = WATERMARK_BUFFER;
-    const logoMaxWidth = Math.floor(metadata.width * 0.2);
-    const logoMaxHeight = Math.floor(metadata.height * 0.15);
-    
-    const resizedLogo = await sharp(logoBuffer)
-      .resize(logoMaxWidth, logoMaxHeight, { fit: "inside" })
-      .toBuffer();
-    
-    const logoMeta = await sharp(resizedLogo).metadata();
-    const logoWidth = logoMeta.width || logoMaxWidth;
-    const logoHeight = logoMeta.height || logoMaxHeight;
-    
+    if (RESULT_LOGO_ASSETS.length === 0) return imageBase64;
+
     const padding = Math.floor(Math.min(metadata.width, metadata.height) * 0.03);
-    const left = metadata.width - logoWidth - padding;
-    const top = metadata.height - logoHeight - padding;
+    const gap = Math.max(12, Math.floor(metadata.width * 0.018));
+    const separatorWidth = Math.max(2, Math.floor(metadata.width * 0.002));
+
+    const resizedLogos = await Promise.all(
+      RESULT_LOGO_ASSETS.map(async (asset) => {
+        const resized = await sharp(asset.buffer)
+          .resize(
+            Math.floor(metadata.width * asset.maxWidthRatio),
+            Math.floor(metadata.height * asset.targetHeightRatio),
+            { fit: "inside" },
+          )
+          .toBuffer();
+
+        const logoMeta = await sharp(resized).metadata();
+        return {
+          key: asset.key,
+          input: resized,
+          width: logoMeta.width || Math.floor(metadata.width * asset.maxWidthRatio),
+          height: logoMeta.height || Math.floor(metadata.height * asset.targetHeightRatio),
+        };
+      }),
+    );
+
+    const logosHeight = Math.max(...resizedLogos.map((logo) => logo.height));
+    const contentWidth =
+      resizedLogos.reduce((sum, logo) => sum + logo.width, 0) +
+      gap * (resizedLogos.length - 1) +
+      separatorWidth * (resizedLogos.length - 1);
+    const barHorizontalPadding = Math.max(20, Math.floor(metadata.width * 0.025));
+    const barVerticalPadding = Math.max(14, Math.floor(metadata.height * 0.02));
+    const barWidth = Math.min(metadata.width - padding * 2, contentWidth + barHorizontalPadding * 2);
+    const barHeight = logosHeight + barVerticalPadding * 2;
+    const barLeft = Math.floor((metadata.width - barWidth) / 2);
+    const barTop = metadata.height - barHeight - padding;
+    const barInnerLeft = barLeft + Math.floor((barWidth - contentWidth) / 2);
+
+    const overlaySvg = `
+      <svg width="${barWidth}" height="${barHeight}" viewBox="0 0 ${barWidth} ${barHeight}" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="${barWidth}" height="${barHeight}" rx="${Math.floor(barHeight / 2)}" fill="rgba(0,0,0,0.52)" />
+      </svg>
+    `;
+
+    const composites: sharp.OverlayOptions[] = [
+      {
+        input: Buffer.from(overlaySvg),
+        left: barLeft,
+        top: barTop,
+      },
+    ];
+
+    let cursorLeft = barInnerLeft;
+    for (let index = 0; index < resizedLogos.length; index += 1) {
+      const logo = resizedLogos[index];
+      const logoTop = barTop + Math.floor((barHeight - logo.height) / 2);
+
+      composites.push({
+        input: logo.input,
+        left: cursorLeft,
+        top: logoTop,
+      });
+
+      cursorLeft += logo.width;
+
+      if (index < resizedLogos.length - 1) {
+        const separatorHeight = Math.floor(logosHeight * 0.75);
+        const separatorTop = barTop + Math.floor((barHeight - separatorHeight) / 2);
+        const separatorSvg = `
+          <svg width="${separatorWidth}" height="${separatorHeight}" viewBox="0 0 ${separatorWidth} ${separatorHeight}" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="${separatorWidth}" height="${separatorHeight}" rx="${Math.ceil(separatorWidth / 2)}" fill="rgba(255,255,255,0.28)" />
+          </svg>
+        `;
+
+        cursorLeft += gap;
+        composites.push({
+          input: Buffer.from(separatorSvg),
+          left: cursorLeft,
+          top: separatorTop,
+        });
+        cursorLeft += separatorWidth + gap;
+      }
+    }
 
     const watermarkedBuffer = await mainImage
-      .composite([
-        {
-          input: resizedLogo,
-          left,
-          top,
-        },
-      ])
+      .composite(composites)
       .jpeg({ quality: 92 })
       .toBuffer();
 
@@ -80,7 +172,7 @@ function getJerseyDescription(team: TeamId): string {
     canada: "Canada national football team jersey: bold red body with white accents, Canada Soccer crest on the left chest, Nike swoosh on the right chest. Solid red home kit with minimal detailing.",
     spain: "Spain national football team jersey (La Roja): rich red (deep crimson) body with yellow collar trim and cuffs, RFEF crest on the left chest, Adidas logo on the right chest. Classic Spanish home kit.",
     england: "England national football team jersey (Three Lions): clean white body with subtle red St. George cross detailing on the collar or sleeves, Three Lions crest on the left chest, Nike swoosh on the right chest. Classic all-white home kit.",
-    brazil: "Brazil national football team jersey (Seleção): bright canary yellow body with green collar and trim, CBF crest on the left chest, Nike swoosh on the right chest. Iconic yellow and green Brazilian home kit.",
+    brazil: "Brazil national football team jersey (SeleÃ§Ã£o): bright canary yellow body with green collar and trim, CBF crest on the left chest, Nike swoosh on the right chest. Iconic yellow and green Brazilian home kit.",
     argentina: "Argentina national football team jersey (La Albiceleste): light blue and white vertical stripes of equal width, AFA crest on the left chest, Adidas logo on the right chest. The iconic Messi-era sky blue and white striped home kit.",
     portugal: "Portugal national football team jersey: dark green (bottle green) body with FPF crest on the left chest, Nike swoosh on the right chest. Dark green Portuguese away/third kit or alternately: deep red home kit with FPF crest.",
   };
@@ -89,98 +181,134 @@ function getJerseyDescription(team: TeamId): string {
 
 function getTransformationPrompt(team: TeamId): string {
   const teamData = teamInfo[team];
-  const jerseyDesc = getJerseyDescription(team);
 
-  return `You are a world-class professional photo retouching artist specializing in hyperrealistic digital compositing. Your task is to perform a MINIMAL, PRECISION photo edit — not to generate a new image.
+  return `You are editing a REAL uploaded photo, not creating a new person. Treat the uploaded image as the single source of truth for identity and anatomy. The final result must look like a realistic sports celebration photograph edited from the original photo.
 
-This is PHOTO RETOUCHING, not image generation. The input photo is the source of truth. You are making exactly THREE targeted changes and NOTHING else.
+=== HIGHEST PRIORITY: PRESERVE IDENTITY EXACTLY ===
+The people in the uploaded photo must remain unmistakably the same real people.
+- Preserve each face exactly: facial structure, eyes, nose, mouth, jawline, cheeks, eyebrows, ears, skin tone, age, expression, and likeness.
+- Preserve hairstyle, hairline, glasses, jewelry, beard, makeup, and visible personal traits.
+- Preserve tattoos, moles, scars, piercings, bracelets, watches, fingernails, and all visible identifying marks.
+- Do NOT beautify, stylize, redraw, re-age, de-age, slim, enlarge, or improve the people.
+- Do NOT replace any face, invent any face, blend faces, or make anyone look like a different person.
+- The faces must stay instantly recognizable to someone who knows the original people.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CHANGE 1 — JERSEY REPLACEMENT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Replace the shirt/clothing of EVERY person visible in the photo with the official ${teamData.name} national football team jersey.
+=== PRESERVE BODY AND PEOPLE COUNT ===
+- Keep ALL people from the original image.
+- Do NOT add or remove people.
+- Preserve body type, body proportions, height, hands, arms, legs, and overall anatomy.
+- Preserve exact limb proportions, shoulder width, arm size, hand size, finger count, tattoos on arms or hands, and visible body details.
+- Preserve the original camera perspective and subject scale as much as possible.
+- Do NOT turn this into a different body, different person, or different anatomy.
 
-Jersey to apply: ${jerseyDesc}
+=== POSE FLEXIBILITY: ONLY MINIMAL AND ONLY IF NEEDED ===
+You may make a very small, natural pose adjustment ONLY if necessary so ONE person can hold the FIFA World Cup Trophy convincingly.
+- Allowed: slight arm reposition, slight shoulder rotation, slight hand adjustment, slight torso adjustment.
+- Not allowed: dramatic new pose, different stance, dance pose, exaggerated movement, major head turn, major body rotation, or changing the group arrangement.
+- If the trophy can be added without changing pose, keep the original pose unchanged.
 
-Technical execution requirements:
-• The jersey fabric must follow the natural folds, creases, and wrinkles of the person's actual body shape and posture — NOT a flat overlay
-• Match the exact lighting direction, shadows, and ambient light already present in the photo
-• Where skin is exposed (collar area, forearms, hands) preserve the exact original skin tone at the exact original boundary
-• The jersey seams, collar, and cuffs must align naturally with the person's neck, shoulders, and wrists
-• Result: viewer cannot tell the jersey was added — it must look like the person was always wearing it
+=== WHAT TO EDIT ===
+1. CLOTHING
+   - Replace ONLY the clothing with realistic ${teamData.name} national team jerseys.
+   - Every person should wear the jersey naturally and believably.
+   - Keep natural folds, shadows, fit, and body alignment.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CHANGE 2 — FIFA WORLD CUP TROPHY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Add the official FIFA World Cup Trophy to the scene — held naturally by one of the people in the photo.
+2. TROPHY
+   - Add exactly ONE FIFA World Cup Trophy.
+   - The trophy must be held naturally by one real person from the original photo.
+   - The trophy must match perspective, scale, lighting, and hand placement.
 
-Trophy description: The iconic 36.8 cm solid 18-karat gold trophy. Two human figures with outstretched arms supporting the Earth globe on top. Highly reflective polished gold surface with realistic specular highlights and environmental reflections.
+3. BACKGROUND
+   - Replace the background with a realistic World Cup stadium celebration scene from field level or near the edge of the pitch, not a generic flat backdrop.
+   - The environment should feel like a live post-match celebration inside the stadium bowl.
+   - Show real stadium depth: visible grass or sideline area, stands full of people, bright stadium lights, and atmospheric perspective.
+   - Include players or team figures in the background when appropriate, but keep them secondary, believable, and not distracting.
+   - Include confetti mainly in the air and across the stands, not as an overwhelming foreground wall.
+   - Keep the people from the uploaded photo as the main subject, not the background spectacle.
 
-Technical execution requirements:
-• The trophy must be gripped at the base or stem by the person's actual hand/arm — use the existing arm position in the photo to determine the most natural placement
-• The trophy must cast a shadow consistent with the photo's light source direction
-• The gold surface must show reflections of the surrounding environment (not a flat gold color)
-• The person's fingers must realistically wrap around the trophy stem — correct occlusion and perspective
-• Result: trophy looks like it was physically present in the original photo shoot
+4. COMPOSITION DIRECTION
+   - Aim for a premium sports broadcast look, as if this was captured by a high-end television camera during a World Cup victory celebration.
+   - Prefer a more immersive stadium composition: closer to the pitch, stronger depth, more believable crowd, and more wow-factor energy.
+   - Avoid the feeling of a pasted subject over a generic stadium stock image.
+   - Integrate the subject naturally into the environment with coherent scale, lighting, shadows, and color temperature.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CHANGE 3 — STADIUM BACKGROUND
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Replace the background entirely with a hyperrealistic FIFA World Cup stadium scene. The person(s) must appear naturally placed inside the stadium environment — either in the stands among cheering fans, or at pitch-side near the green field.
+5. BROADCAST CAMERA LOOK
+   - The image should feel like a top-tier live TV sports shot: sharp subject, premium lens rendering, believable stadium lighting, and rich contrast.
+   - Keep the main person crisp and clearly readable.
+   - Allow the background to be slightly softer or subtly out of focus, like a professional telephoto or broadcast camera separation.
+   - Use realistic depth, natural highlight rolloff, and a polished televised finish, not artificial filters.
+   - The final image should feel impressive, celebratory, and visually striking without looking fake or overprocessed.
 
-Stadium scene details:
-• A massive, modern, fully packed football stadium under bright stadium floodlights
-• Tens of thousands of fans in colorful jerseys visible in the stands, creating a wall of color and energy
-• Vivid green grass pitch visible in the foreground or background
-• Celebratory confetti, streamers, or ticker tape falling through the air
-• Warm golden stadium lighting with dramatic rim/back lighting on the subjects
-• Wide-angle stadium architecture visible (multiple tiers of seating, scoreboard, stadium roof)
-• Atmosphere: victory celebration — the final whistle has just blown
+6. CELEBRATION ENERGY
+   - Show visible victory atmosphere: confetti bursts, crowd excitement, and players or team figures celebrating in the background when appropriate.
+   - Confetti should feel dynamic and event-driven, like celebration cannons or bursts in the stadium, not random floating debris everywhere.
+   - The stadium should feel alive, triumphant, and high-stakes, as if the team has just won an important match.
+   - Keep this energy behind the main subject so the person remains the hero of the shot.
 
-Technical execution requirements (CRITICAL for avoiding collage effect):
-• The edge between the person(s) and the new background must be SEAMLESSLY BLENDED — no hard cutout edges, no halos, no fringing. Use realistic edge softening that mimics how a camera lens captures foreground subjects against bright backgrounds.
-• Apply a SHALLOW DEPTH OF FIELD: the background must be realistically blurred (bokeh effect, ~f/2.8 equivalent), as if photographed with a portrait lens. This is the most important technique for making background compositing look real.
-• The stadium background lighting must MATCH the lighting direction already on the person's face and body — if the original photo has frontal lighting, the stadium background must show a corresponding frontal light source direction.
-• Add subtle atmospheric haze, lens flare, or bloom from the stadium floodlights to unify the foreground and background color temperature.
-• The person(s) must feel EMBEDDED IN the stadium — not pasted in front of it. Scale the stadium background so the subjects are positioned naturally within the scene (not floating or disproportionately large).
+7. OUTPUT FRAMING
+   - The final composition must be horizontal landscape, like a television broadcast frame.
+   - Prefer a wide 16:9 style composition.
+   - Do NOT return a portrait or vertical composition.
+   - Keep all people fully and naturally framed inside this horizontal composition.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DO NOT CHANGE — ABSOLUTE PRESERVATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-The following must be preserved PIXEL-PERFECT:
+=== VARIATION WITHOUT LOSING REALISM ===
+For each generation, create a different but plausible celebration photo by varying ONLY these elements:
+- stadium angle or section
+- field-level position or sideline perspective
+- visible background players or staff
+- confetti density and where it appears in the stands
+- lighting mood
+- amount of background blur
+- lens feel or broadcast framing feel
+- crop distance
+- trophy placement angle
+- jersey wrinkles and fabric behavior
+- background energy and celebration intensity
 
-FACES: Every face in the photo must be reproduced exactly — identical bone structure, exact eye shape and color, exact nose, exact mouth, exact skin tone, exact complexion, exact facial hair (beard/stubble/mustache), exact expression. NO face regeneration. NO "similar" faces — EXACT faces.
+Choose one realistic combination per generation and avoid repeating the exact same composition when another natural option is possible.
 
-BODIES: Every person's body type, proportions, height, weight/build, and posture must remain identical to the input.
+=== SCENE VARIATION RULE ===
+Use a similar celebration theme every time, but do NOT repeat the exact same stadium layout, same crowd pattern, same trophy angle, same confetti placement, or same camera framing in every result.
+Each image should feel like a different real photograph taken in the same kind of event, not the same template reused.
 
-POSES: Every person's arm position, head tilt, stance, and gesture must be preserved exactly.
+=== VISUAL STYLE ===
+- Photorealistic
+- Real camera photo
+- Natural skin texture
+- Realistic lighting and shadows
+- High detail
+- Cohesive stadium atmosphere
+- Premium live-broadcast sports look
+- Slight background separation when natural
+- No cartoon, painting, 3D render, plastic skin, beauty filter, or fantasy look
 
-BACKGROUND: Replace the background with a hyperrealistic World Cup stadium environment (see CHANGE 3 below). Everything EXCEPT the background must remain exactly as in the original photo.
+=== HARD FAIL CONDITIONS TO AVOID ===
+- altered identity
+- different face
+- different body
+- synthetic or generic-looking person
+- extra fingers or broken anatomy
+- over-stylized image
+- fake smile or changed expression
+- dramatic pose change
+- pasted-on look
+- flat or empty background
+- repeated template composition
+- over-blurred fake portrait look
+- unrealistic poster-style compositing
+- altered tattoos or missing identifying marks
+- portrait output
+- cropped-out people or distorted limbs
 
-ACCESSORIES: Glasses, hats, jewelry, watches, and all accessories must remain exactly as in the input.
-
-HAIR: Every person's hairstyle, hair color, and hair length must be preserved exactly.
-
-PEOPLE COUNT: The output must contain the exact same number of people as the input — no additions, no removals.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-QUALITY STANDARD
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-The final result must be INDISTINGUISHABLE from a real photograph taken at a World Cup stadium. No hard cutout edges, no compositing seams, no mismatched lighting, no cartoon or illustrative elements, no AI-generated faces. A viewer should believe the subjects were photographed directly inside the stadium.
-
-PRIORITY ORDER (if any conflict): Preserve faces → Preserve bodies/poses → Apply jersey → Add trophy → Replace background.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OUTPUT FORMAT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generate the output image in LANDSCAPE 16:9 aspect ratio (wider than tall). The subject should be centered and fully visible within the 16:9 frame. Do NOT crop the person's head or body — adjust the stadium background framing to fill the 16:9 canvas around the subject.`;
+=== FINAL GOAL ===
+Return a realistic, premium, high-impact World Cup victory photo edit where the people are still clearly the exact same people from the uploaded image, now wearing ${teamData.name} jerseys in an immersive stadium celebration scene, with one person holding the World Cup Trophy naturally. The image should feel like an impressive televised sports moment: real, polished, energetic, and wow, while identity accuracy remains more important than spectacle.`;
 }
 
 async function transformImage(originalImageBase64: string, team: TeamId): Promise<string> {
   const ai = getAIClient();
   const base64Data = originalImageBase64.replace(/^data:image\/\w+;base64,/, "");
   const prompt = getTransformationPrompt(team);
-  
+
   const response = await ai.models.generateContent({
     model: "gemini-3-pro-image-preview",
     contents: [
@@ -206,7 +334,7 @@ async function transformImage(originalImageBase64: string, team: TeamId): Promis
 
   const candidate = response.candidates?.[0];
   const imagePart = candidate?.content?.parts?.find(
-    (part: { inlineData?: { data?: string; mimeType?: string } }) => part.inlineData
+    (part: { inlineData?: { data?: string; mimeType?: string } }) => part.inlineData,
   );
 
   if (!imagePart?.inlineData?.data) {
@@ -219,9 +347,8 @@ async function transformImage(originalImageBase64: string, team: TeamId): Promis
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express
+  app: Express,
 ): Promise<Server> {
-  
   app.post("/api/transform", async (req, res) => {
     try {
       const { team, image } = req.body;
