@@ -72,16 +72,16 @@ export default function ImagesGallery() {
         {/* Title */}
         <div className="relative z-10 flex flex-col items-center text-center px-4 pt-2 pb-3">
           <p className="text-[10px] font-bold text-green-400 uppercase tracking-[0.25em] mb-0.5">
-            — Galería —
+            {"\u2014 Galer\u00eda \u2014"}
           </p>
           <h1
             className="text-2xl font-black text-white uppercase tracking-tight drop-shadow-lg sm:text-3xl md:text-4xl stadium-headline-accent"
             data-testid="text-gallery-title"
           >
-            GALERÍA DE FANS
+            {"GALER\u00cdA DE FANS"}
           </h1>
           <p className="text-[10px] text-white/50 mt-0.5 uppercase tracking-widest">
-            ⚽ Copa del Mundo 2026 ⚽
+            {"\u26BD Copa del Mundo 2026 \u26BD"}
           </p>
         </div>
 
@@ -102,16 +102,16 @@ export default function ImagesGallery() {
                   className="mb-2 text-xl font-black text-white uppercase tracking-widest"
                   data-testid="text-empty-state"
                 >
-                  SIN IMÁGENES AÚN
+                  {"SIN IM\u00c1GENES A\u00daN"}
                 </h2>
                 <p className="text-sm text-white/60">
-                  Las transformaciones realizadas aparecerán aquí
+                  {"Las transformaciones realizadas aparecer\u00e1n aqu\u00ed"}
                 </p>
               </div>
             ) : (
               <>
                 <p className="mb-4 text-center text-xs text-white/60 uppercase tracking-widest">
-                  {transformations.length} imágenes guardadas
+                  {transformations.length} {"im\u00e1genes guardadas"}
                 </p>
 
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -166,7 +166,7 @@ export default function ImagesGallery() {
 
         <footer className="py-2 text-center">
           <p className="text-[10px] text-white/20 tracking-wide uppercase">
-            ⚽ Tecnología de COHETE BRANDS ⚽
+            {"\u26BD Tecnolog\u00eda de COHETE BRANDS \u26BD"}
           </p>
         </footer>
       </div>
