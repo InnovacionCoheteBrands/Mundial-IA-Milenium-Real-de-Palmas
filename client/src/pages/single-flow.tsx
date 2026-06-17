@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect, type ChangeEvent } from "react";
+import { useRef, useState, useCallback, useEffect, type ChangeEvent, type CSSProperties } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import QRCode from "react-qr-code";
@@ -435,6 +435,13 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     borderStyle: "solid" as const,
     boxShadow: `0 0 20px ${teamColors?.primary ?? "#22c55e"}40`,
   };
+  const previewFrameStyle: CSSProperties & Record<"--preview-aspect-ratio", string> = {
+    ...borderStyle,
+    aspectRatio: String(previewFrameAspectRatio),
+    maxHeight: "55vh",
+    width: "min(100%, calc(55vh * var(--preview-aspect-ratio)))",
+    "--preview-aspect-ratio": String(previewFrameAspectRatio),
+  };
 
   return (
     <div className="flex flex-col gap-0">
@@ -452,8 +459,8 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
 
         {/* Camera preview */}
         <div
-          className="relative w-full overflow-hidden rounded-lg bg-black"
-          style={{ ...borderStyle, aspectRatio: previewFrameAspectRatio, maxHeight: "55vh" }}
+          className="relative mx-auto overflow-hidden rounded-lg bg-black"
+          style={previewFrameStyle}
           data-testid="card-camera-preview"
         >
           {capturedPreview ? (
