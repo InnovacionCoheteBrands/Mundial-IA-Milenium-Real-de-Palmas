@@ -21,6 +21,7 @@ import {
 import { useApp, type FlowStep } from "@/lib/app-context";
 import { TEAMS, teamInfo, type TeamId } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { apiRequest } from "@/lib/queryClient";
 import backgroundImage from "@assets/bg_stadium_abstract_2.png";
 import trophyImage from "@assets/ChatGPT_Image_6_ene_2026,_15_32_44_1767829210783.png";
@@ -246,8 +247,14 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [cameraSession, setCameraSession] = useState(0);
   const [previewFrameAspectRatio, setPreviewFrameAspectRatio] = useState(CAMERA_ASPECT_RATIO);
+  const [isPortraitViewport, setIsPortraitViewport] = useState(() =>
+    typeof window === "undefined" ? true : window.innerHeight >= window.innerWidth,
+  );
 
+  const isMobileViewport = useIsMobile();
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isMobileUserAgent = isMobile;
+  const shouldUsePortraitMobileLayout = isMobileViewport && isPortraitViewport;
   const shouldCorrectUserCameraMirror = facingMode === "user";
   const teamColors = selectedTeam ? teamInfo[selectedTeam].colors : null;
 
@@ -269,6 +276,21 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
     }
   }, [stopStream]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateViewportOrientation = () => {
+      setIsPortraitViewport(window.innerHeight >= window.innerWidth);
+    };
+
+    updateViewportOrientation();
+    window.addEventListener("resize", updateViewportOrientation);
+
+    return () => {
+      window.removeEventListener("resize", updateViewportOrientation);
+    };
+  }, []);
+
   const startCamera = useCallback(async () => {
     const requestId = cameraRequestRef.current + 1;
     cameraRequestRef.current = requestId;
@@ -280,9 +302,25 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
 
       let mediaStream: MediaStream;
       try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: false });
+        const preferredVideoConstraints: MediaTrackConstraints = shouldUsePortraitMobileLayout
+          ? {
+              facingMode,
+              width: { ideal: 1080 },
+              height: { ideal: 1440 },
+              aspectRatio: { ideal: 3 / 4 },
+            }
+          : { facingMode };
+
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: preferredVideoConstraints,
+          audio: false,
+        });
       } catch {
-        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: false });
+        } catch {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
       }
 
       if (requestId !== cameraRequestRef.current) {
@@ -299,7 +337,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
       setHasPermission(false);
       setError("No se pudo acceder a la c\u00e1mara.");
     }
-  }, [facingMode, stopCamera, stopStream]);
+  }, [facingMode, shouldUsePortraitMobileLayout, stopCamera, stopStream]);
 
   useEffect(() => {
     startCamera();
@@ -438,8 +476,10 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
   const previewFrameStyle: CSSProperties & Record<"--preview-aspect-ratio", string> = {
     ...borderStyle,
     aspectRatio: String(previewFrameAspectRatio),
-    maxHeight: "55vh",
-    width: "min(100%, calc(55vh * var(--preview-aspect-ratio)))",
+    maxHeight: shouldUsePortraitMobileLayout ? "50dvh" : "55vh",
+    width: shouldUsePortraitMobileLayout
+      ? "min(100%, 78vw)"
+      : "min(100%, calc(55vh * var(--preview-aspect-ratio)))",
     "--preview-aspect-ratio": String(previewFrameAspectRatio),
   };
 
@@ -453,7 +493,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
             TU FOTO
           </h2>
           <p className="text-[11px] text-white/50">
-            {isMobile ? "Toma o sube una foto" : "Usa la c\u00e1mara o sube una foto"}
+            {isMobileUserAgent ? "Toma o sube una foto" : "Usa la c\u00e1mara o sube una foto"}
           </p>
         </div>
 
@@ -519,7 +559,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
           data-testid="input-file-upload"
         />
         {capturedPreview ? (
-          <div className="flex gap-2">
+          <div className={`flex gap-2 ${shouldUsePortraitMobileLayout ? "flex-col" : ""}`}>
             <Button
               variant="outline"
               size="default"
@@ -546,7 +586,7 @@ function CaptureContent({ onContinue }: { onContinue: () => void }) {
             </Button>
           </div>
         ) : (
-          <div className="flex gap-2">
+          <div className={`flex gap-2 ${shouldUsePortraitMobileLayout ? "flex-col" : ""}`}>
             {hasPermission && (
               <Button
                 size="default"
@@ -905,9 +945,9 @@ export default function SingleFlowPage() {
           </h1>
         </div>
 
-        <main className="flex flex-1 min-h-0 flex-col items-center justify-center px-2 py-1 sm:px-4 sm:py-2">
+        <main className="flex flex-1 min-h-0 w-full flex-col items-center justify-start overflow-y-auto px-2 py-1 sm:justify-center sm:px-4 sm:py-2">
           {/* Card: transparent dark panel */}
-          <div className="w-full max-w-sm max-h-full flex flex-col overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-md shadow-2xl sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
+          <div className="w-full max-w-sm max-h-full flex flex-col overflow-x-hidden overflow-y-auto rounded-xl border border-white/15 bg-black/50 backdrop-blur-md shadow-2xl sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
             <StepDots current={currentStep} />
             {renderStepContent()}
           </div>
