@@ -88,9 +88,9 @@ export default function ImagesGallery() {
         <main className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="mx-auto max-w-6xl">
             {isLoading ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton key={i} className="aspect-square w-full rounded-xl bg-white/10" />
+                  <Skeleton key={i} className="aspect-[16/9] w-full rounded-xl bg-white/10" />
                 ))}
               </div>
             ) : !transformations || transformations.length === 0 ? (
@@ -114,7 +114,7 @@ export default function ImagesGallery() {
                   {transformations.length} {"im\u00e1genes guardadas"}
                 </p>
 
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {transformations.map((transformation) => {
                     const team = transformation.team as TeamId;
                     const teamData = teamInfo[team];
@@ -122,7 +122,7 @@ export default function ImagesGallery() {
                     return (
                       <Card
                         key={transformation.id}
-                        className="group relative aspect-square overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-sm"
+                        className="group relative aspect-[16/9] overflow-hidden rounded-xl border border-white/15 bg-black/50 backdrop-blur-sm"
                         data-testid={`card-image-${transformation.id}`}
                       >
                         <img
@@ -132,11 +132,11 @@ export default function ImagesGallery() {
                           loading="lazy"
                         />
 
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="absolute right-3 top-3 z-10 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="text-white hover:bg-white/20"
+                            className="h-10 w-10 rounded-full border border-white/20 bg-black/60 text-white backdrop-blur-sm hover:bg-black/80"
                             onClick={() =>
                               handleDownload(
                                 transformation.transformedImageUrl,
